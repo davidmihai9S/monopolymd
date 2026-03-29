@@ -18,20 +18,17 @@
         }
 
         body {
-            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
             background: linear-gradient(135deg, #0a2f1f 0%, #05140a 100%);
             min-height: 100vh;
             color: #fff;
-            overflow-x: hidden;
         }
 
-        /* Premium Glass Effect */
         .glass {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
             border-radius: 28px;
             border: 1px solid rgba(255, 215, 0, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
 
         .container {
@@ -41,14 +38,12 @@
             min-height: 100vh;
         }
 
-        /* Headers */
         h1 {
             font-size: 36px;
             background: linear-gradient(135deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: 2px;
         }
 
         h2 {
@@ -57,8 +52,7 @@
             margin-bottom: 16px;
         }
 
-        /* Inputs */
-        input, .join-input {
+        input {
             width: 100%;
             padding: 16px;
             font-size: 16px;
@@ -66,17 +60,14 @@
             border-radius: 60px;
             background: rgba(0, 0, 0, 0.6);
             color: white;
-            transition: all 0.3s;
             text-align: center;
         }
 
         input:focus {
             outline: none;
             border-color: #FFD700;
-            background: rgba(0, 0, 0, 0.8);
         }
 
-        /* Buttons */
         .btn {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             border: none;
@@ -85,7 +76,6 @@
             font-weight: bold;
             border-radius: 60px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
             width: 100%;
             color: #1a1a2e;
             margin-top: 12px;
@@ -97,16 +87,9 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.5; }
 
-        .btn:disabled {
-            opacity: 0.5;
-            transform: none;
-        }
-
-        /* Cards */
         .card {
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
@@ -117,7 +100,6 @@
             text-align: center;
         }
 
-        /* Game Header */
         .game-header {
             display: flex;
             justify-content: space-between;
@@ -145,7 +127,6 @@
             font-size: 14px;
         }
 
-        /* Player Stats */
         .players-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -159,13 +140,11 @@
             padding: 12px;
             text-align: center;
             border-left: 4px solid;
-            transition: all 0.2s;
         }
 
         .player-card.active {
             background: rgba(255, 215, 0, 0.2);
             transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
         .player-avatar {
@@ -180,18 +159,9 @@
             background: rgba(0,0,0,0.3);
         }
 
-        .player-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
+        .player-name { font-weight: bold; font-size: 14px; }
+        .player-money { font-size: 16px; font-weight: bold; color: #FFD700; }
 
-        .player-money {
-            font-size: 16px;
-            font-weight: bold;
-            color: #FFD700;
-        }
-
-        /* Board */
         .board {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 24px;
@@ -209,12 +179,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.2s;
             cursor: pointer;
-        }
-
-        .tile:hover {
-            background: rgba(255, 255, 255, 0.12);
         }
 
         .tile-number {
@@ -230,39 +195,13 @@
             color: #1a1a2e;
         }
 
-        .tile-color {
-            width: 6px;
-            height: 40px;
-            border-radius: 3px;
-        }
+        .tile-color { width: 6px; height: 40px; border-radius: 3px; }
+        .tile-info { flex: 1; }
+        .tile-name { font-size: 13px; font-weight: 500; }
+        .tile-owner { font-size: 10px; opacity: 0.6; }
+        .tile-players { display: flex; gap: 4px; }
+        .tile-player-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; }
 
-        .tile-info {
-            flex: 1;
-        }
-
-        .tile-name {
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .tile-owner {
-            font-size: 10px;
-            opacity: 0.6;
-        }
-
-        .tile-players {
-            display: flex;
-            gap: 4px;
-        }
-
-        .tile-player-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-
-        /* Dice Area */
         .dice-area {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 28px;
@@ -289,17 +228,10 @@
             font-size: 42px;
             font-weight: bold;
             color: #333;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
-        .die.rolling {
-            animation: diceRoll 0.1s infinite;
-        }
-
-        @keyframes diceRoll {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .die.rolling { animation: diceRoll 0.1s infinite; }
+        @keyframes diceRoll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .action-buttons {
             display: flex;
@@ -308,7 +240,6 @@
             flex-wrap: wrap;
         }
 
-        /* Log */
         .game-log {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 20px;
@@ -325,7 +256,6 @@
             font-family: monospace;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -349,19 +279,9 @@
             border: 2px solid #FFD700;
         }
 
-        .modal-content h3 {
-            color: #FFD700;
-            margin-bottom: 16px;
-        }
+        .modal-content h3 { color: #FFD700; margin-bottom: 16px; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
 
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 24px;
-        }
-
-        /* Status */
         .status {
             position: fixed;
             bottom: 20px;
@@ -373,33 +293,9 @@
             z-index: 100;
             animation: slideUp 0.3s;
         }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .status.error {
-            background: #e74c3c;
-        }
-
-        .status.success {
-            background: #27ae60;
-        }
-
-        /* Waiting Room */
-        .waiting-players {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .status.error { background: #e74c3c; }
+        .status.success { background: #27ae60; }
 
         .waiting-player {
             display: flex;
@@ -408,53 +304,32 @@
             padding: 12px;
             background: rgba(255,255,255,0.05);
             border-radius: 60px;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,215,0,0.3);
-            border-top-color: #FFD700;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container" id="app">
-        <!-- Create/Join Screen -->
         <div id="lobbyScreen" class="card" style="margin-top: 40px;">
             <h1>🎲 MONOPOLY</h1>
             <p style="margin: 16px 0; color: #FFD700;">ROMÂNIA</p>
             <p style="margin-bottom: 24px; font-size: 14px;">Multiplayer - Fiecare pe telefonul său</p>
             
-            <input type="text" id="playerNameInput" placeholder="Numele tău" maxlength="15" style="text-align: left; padding-left: 20px;">
+            <input type="text" id="playerNameInput" placeholder="Numele tău" maxlength="15">
             
             <button class="btn" onclick="createGame()">✨ Creează Joc Nou</button>
             <div style="margin: 16px 0; text-align: center; color: rgba(255,255,255,0.5);">sau</div>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="joinCodeInput" placeholder="Cod camera (6 cifre)" maxlength="6" style="text-align: center; flex: 1;">
+                <input type="text" id="joinCodeInput" placeholder="Cod camera (6 cifre)" maxlength="6" style="flex: 1;">
                 <button class="btn btn-secondary" onclick="joinGame()" style="width: auto; padding: 16px 24px;">🔗 Intră</button>
             </div>
         </div>
 
-        <!-- Waiting Room -->
         <div id="waitingScreen" style="display: none;">
             <div class="card">
                 <h2>🕐 Așteptând jucători</h2>
                 <div class="room-code" id="roomCodeDisplay">------</div>
-                <div id="waitingPlayersList" class="waiting-players"></div>
+                <div id="waitingPlayersList"></div>
                 <div id="startGameBtn" style="display: none;">
                     <button class="btn" onclick="startGame()">🎮 Începe Jocul</button>
                 </div>
@@ -462,17 +337,13 @@
             </div>
         </div>
 
-        <!-- Main Game -->
         <div id="gameScreen" style="display: none;">
             <div class="game-header">
                 <div class="room-code" id="gameRoomCode">------</div>
                 <div class="turn-badge" id="turnBadge">Încărcare...</div>
             </div>
-
             <div id="playersStats" class="players-grid"></div>
-
             <div class="board" id="board"></div>
-
             <div class="dice-area">
                 <div class="dice-container">
                     <div class="die" id="die1">⚀</div>
@@ -483,7 +354,6 @@
                     <button class="btn btn-secondary" id="endTurnBtn" onclick="endTurn()" style="width: auto; padding: 14px 28px;" disabled>⏭️ Termină</button>
                 </div>
             </div>
-
             <div class="game-log" id="gameLog"></div>
         </div>
     </div>
@@ -498,19 +368,18 @@
 
     <script>
         // ====================================================================
-        // FIREBASE CONFIGURATION (Free tier - replace with yours)
+        // YOUR FIREBASE CONFIGURATION
         // ====================================================================
         const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyReplaceWithYourOwn",  // <-- YOU NEED TO REPLACE THIS
-            authDomain: "monopoly-romania.firebaseapp.com",
-            databaseURL: "https://monopoly-romania-default-rtdb.firebaseio.com",
-            projectId: "monopoly-romania",
-            storageBucket: "monopoly-romania.firebasestorage.app",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456"
+            apiKey: "AIzaSyBD9yxz2SP35xzNvN9Q5MYM3lcQgd8snAA",
+            authDomain: "monopolymd.firebaseapp.com",
+            databaseURL: "https://monopolymd-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "monopolymd",
+            storageBucket: "monopolymd.firebasestorage.app",
+            messagingSenderId: "175522958186",
+            appId: "1:175522958186:web:fb224b774ec3ea287bf313"
         };
         
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
@@ -563,20 +432,12 @@
         const PLAYER_COLORS = ["#FF4444", "#4444FF", "#44FF44", "#FFFF44", "#FF44FF", "#FF8844", "#FF88FF", "#44FFFF"];
         const PLAYER_EMOJIS = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"];
         
-        // ====================================================================
-        // GLOBAL STATE
-        // ====================================================================
         let currentRoomId = null;
         let myPlayerId = null;
         let myPlayerName = null;
         let isAdmin = false;
         let gameData = null;
-        let turnListener = null;
-        let gameListener = null;
         
-        // ====================================================================
-        // UI HELPERS
-        // ====================================================================
         function showStatus(msg, type) {
             const status = document.createElement('div');
             status.className = `status ${type}`;
@@ -595,32 +456,18 @@
                 button.innerText = btn.text;
                 button.className = 'btn btn-secondary';
                 button.style.margin = '0';
-                button.onclick = () => {
-                    btn.action();
-                    closeModal();
-                };
+                button.onclick = () => { btn.action(); closeModal(); };
                 btnsDiv.appendChild(button);
             });
             document.getElementById('modal').style.display = 'flex';
         }
         
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function generateRoomCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
         
-        function generateRoomCode() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
-        
-        // ====================================================================
-        // GAME ACTIONS
-        // ====================================================================
         function createGame() {
             myPlayerName = document.getElementById('playerNameInput').value.trim();
-            if (!myPlayerName) {
-                showStatus("Introdu un nume!", "error");
-                return;
-            }
+            if (!myPlayerName) { showStatus("Introdu un nume!", "error"); return; }
             
             const roomCode = generateRoomCode();
             currentRoomId = roomCode;
@@ -639,123 +486,74 @@
                 turnOrder: []
             };
             
-            // Initialize properties
-            TILES.forEach(tile => {
-                initialGameState.properties[tile.id] = { owner: null, houses: 0 };
-            });
-            
-            // Add creator as first player
+            TILES.forEach(tile => { initialGameState.properties[tile.id] = { owner: null, houses: 0 }; });
             initialGameState.players[myPlayerId] = {
-                id: myPlayerId,
-                name: myPlayerName,
-                color: PLAYER_COLORS[0],
-                emoji: PLAYER_EMOJIS[0],
-                money: 1500,
-                position: 0,
-                properties: [],
-                isActive: true
+                id: myPlayerId, name: myPlayerName, color: PLAYER_COLORS[0], emoji: PLAYER_EMOJIS[0],
+                money: 1500, position: 0, properties: [], isActive: true
             };
             initialGameState.turnOrder = [myPlayerId];
             
-            // Save to Firebase
             database.ref('games/' + roomCode).set(initialGameState);
-            
-            // Join the game
             joinGameRoom(roomCode);
         }
         
         function joinGame() {
             myPlayerName = document.getElementById('playerNameInput').value.trim();
-            if (!myPlayerName) {
-                showStatus("Introdu un nume!", "error");
-                return;
-            }
+            if (!myPlayerName) { showStatus("Introdu un nume!", "error"); return; }
             
             const roomCode = document.getElementById('joinCodeInput').value.trim();
-            if (!roomCode || roomCode.length !== 6) {
-                showStatus("Cod invalid! Trebuie să aibă 6 cifre.", "error");
-                return;
-            }
+            if (!roomCode || roomCode.length !== 6) { showStatus("Cod invalid! 6 cifre.", "error"); return; }
             
             currentRoomId = roomCode;
             myPlayerId = myPlayerName + "_" + Date.now();
             isAdmin = false;
-            
             joinGameRoom(roomCode);
         }
         
         function joinGameRoom(roomCode) {
             const gameRef = database.ref('games/' + roomCode);
-            
             gameRef.once('value', (snapshot) => {
                 const game = snapshot.val();
-                if (!game) {
-                    showStatus("Jocul nu există! Verifică codul.", "error");
-                    return;
-                }
+                if (!game) { showStatus("Jocul nu există!", "error"); return; }
                 
-                // Add player to the game
                 const playerCount = Object.keys(game.players || {}).length;
-                if (playerCount >= 8) {
-                    showStatus("Jocul este plin! (max 8 jucători)", "error");
-                    return;
-                }
+                if (playerCount >= 8) { showStatus("Jocul este plin!", "error"); return; }
                 
                 const newPlayer = {
-                    id: myPlayerId,
-                    name: myPlayerName,
-                    color: PLAYER_COLORS[playerCount % PLAYER_COLORS.length],
-                    emoji: PLAYER_EMOJIS[playerCount % PLAYER_EMOJIS.length],
-                    money: 1500,
-                    position: 0,
-                    properties: [],
-                    isActive: true
+                    id: myPlayerId, name: myPlayerName, color: PLAYER_COLORS[playerCount % PLAYER_COLORS.length],
+                    emoji: PLAYER_EMOJIS[playerCount % PLAYER_EMOJIS.length], money: 1500, position: 0, properties: [], isActive: true
                 };
                 
                 const updates = {};
                 updates[`players/${myPlayerId}`] = newPlayer;
                 updates[`turnOrder/${playerCount}`] = myPlayerId;
-                
                 gameRef.update(updates);
                 
-                // Set up listeners
                 setupGameListeners(roomCode);
                 
-                // Show waiting screen
                 document.getElementById('lobbyScreen').style.display = 'none';
                 document.getElementById('waitingScreen').style.display = 'block';
                 document.getElementById('roomCodeDisplay').innerText = roomCode;
+                if (isAdmin) document.getElementById('startGameBtn').style.display = 'block';
                 
-                if (isAdmin) {
-                    document.getElementById('startGameBtn').style.display = 'block';
-                }
-                
-                // Listen for player updates
                 database.ref('games/' + roomCode + '/players').on('value', (snap) => {
                     const players = snap.val() || {};
-                    updateWaitingPlayers(players);
+                    const container = document.getElementById('waitingPlayersList');
+                    container.innerHTML = Object.values(players).map(p => `
+                        <div class="waiting-player">
+                            <div style="font-size: 32px;">${p.emoji}</div>
+                            <div style="flex:1; font-weight: bold;">${p.name}</div>
+                            <div style="color: ${p.color}; font-size: 20px;">●</div>
+                        </div>
+                    `).join('');
                 });
             });
         }
         
-        function updateWaitingPlayers(players) {
-            const container = document.getElementById('waitingPlayersList');
-            container.innerHTML = Object.values(players).map(p => `
-                <div class="waiting-player">
-                    <div style="font-size: 32px;">${p.emoji}</div>
-                    <div style="flex:1; font-weight: bold;">${p.name}</div>
-                    <div style="color: ${p.color}; font-size: 20px;">●</div>
-                </div>
-            `).join('');
-        }
-        
         function setupGameListeners(roomCode) {
-            const gameRef = database.ref('games/' + roomCode);
-            
-            gameRef.on('value', (snapshot) => {
+            database.ref('games/' + roomCode).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.gameStarted) {
-                    // Game started - switch to game screen
                     document.getElementById('waitingScreen').style.display = 'none';
                     document.getElementById('gameScreen').style.display = 'block';
                     document.getElementById('gameRoomCode').innerText = roomCode;
@@ -767,7 +565,6 @@
         
         function startGame() {
             if (!isAdmin) return;
-            
             const gameRef = database.ref('games/' + currentRoomId);
             gameRef.update({
                 gameStarted: true,
@@ -778,49 +575,33 @@
         }
         
         function rollDice() {
-            if (!gameData || gameData.currentTurn !== myPlayerId) {
-                showStatus("Nu este rândul tău!", "error");
-                return;
-            }
-            if (gameData.hasRolled) {
-                showStatus("Ai aruncat deja zarul în această tură!", "error");
-                return;
-            }
+            if (!gameData || gameData.currentTurn !== myPlayerId) { showStatus("Nu este rândul tău!", "error"); return; }
+            if (gameData.hasRolled) { showStatus("Ai aruncat deja zarul!", "error"); return; }
             
             const dice1 = Math.floor(Math.random() * 6) + 1;
             const dice2 = Math.floor(Math.random() * 6) + 1;
             const total = dice1 + dice2;
             
-            // Animate dice
             animateDice(dice1, dice2);
             
             const player = gameData.players[myPlayerId];
             const oldPos = player.position;
             let newPos = (oldPos + total) % 40;
             
-            const updates = {
-                dice: [dice1, dice2],
-                hasRolled: true
-            };
-            
-            // Move player
+            const updates = { dice: [dice1, dice2], hasRolled: true };
             updates[`players/${myPlayerId}/position`] = newPos;
             
-            // Check for passing GO
             if (newPos < oldPos) {
                 updates[`players/${myPlayerId}/money`] = player.money + 200;
                 addLogEntry(`${player.name} a trecut pe la Pornire +200 RON`);
             }
             
-            // Handle tile
             const tile = TILES[newPos];
             addLogEntry(`${player.name} a dat ${dice1}+${dice2}=${total} → ${tile.name}`);
             
-            // Property logic
             if (tile.type === "property" && tile.price > 0) {
                 const property = gameData.properties[newPos];
                 if (!property.owner) {
-                    // Show buy dialog via modal
                     showModal("Cumpără proprietate", `${tile.name} - ${tile.price} RON`, [
                         { text: "✅ Cumpără", action: () => buyProperty(newPos, tile.price) },
                         { text: "❌ Refuză", action: () => declineProperty(newPos) }
@@ -837,9 +618,7 @@
                 }
             }
             
-            // Check for double
             if (dice1 !== dice2) {
-                // End turn after this
                 const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
                 const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
                 updates.currentTurn = gameData.turnOrder[nextIndex];
@@ -862,7 +641,6 @@
                 updates[`properties/${tileId}/owner`] = myPlayerId;
                 addLogEntry(`${player.name} a cumpărat ${TILES[tileId].name} pentru ${price} RON`);
                 
-                // End turn
                 const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
                 const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
                 updates.currentTurn = gameData.turnOrder[nextIndex];
@@ -888,14 +666,8 @@
         }
         
         function endTurn() {
-            if (!gameData || gameData.currentTurn !== myPlayerId) {
-                showStatus("Nu este rândul tău!", "error");
-                return;
-            }
-            if (!gameData.hasRolled) {
-                showStatus("Trebuie să arunci zarul mai întâi!", "error");
-                return;
-            }
+            if (!gameData || gameData.currentTurn !== myPlayerId) { showStatus("Nu este rândul tău!", "error"); return; }
+            if (!gameData.hasRolled) { showStatus("Trebuie să arunci zarul mai întâi!", "error"); return; }
             
             const updates = {};
             const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
@@ -911,4 +683,83 @@
             const gameRef = database.ref('games/' + currentRoomId);
             gameRef.once('value', (snap) => {
                 const currentLog = snap.val()?.log || [];
-                const newLog = [message, ...currentLog].
+                const newLog = [message, ...currentLog].slice(0, 30);
+                gameRef.update({ log: newLog });
+            });
+        }
+        
+        function animateDice(d1, d2) {
+            const die1 = document.getElementById('die1');
+            const die2 = document.getElementById('die2');
+            const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+            die1.classList.add('rolling');
+            die2.classList.add('rolling');
+            let count = 0;
+            const interval = setInterval(() => {
+                die1.innerText = faces[Math.floor(Math.random() * 6)];
+                die2.innerText = faces[Math.floor(Math.random() * 6)];
+                count++;
+                if (count > 10) {
+                    clearInterval(interval);
+                    die1.classList.remove('rolling');
+                    die2.classList.remove('rolling');
+                    die1.innerText = faces[d1 - 1];
+                    die2.innerText = faces[d2 - 1];
+                }
+            }, 50);
+        }
+        
+        function renderGame() {
+            if (!gameData) return;
+            
+            const playersDiv = document.getElementById('playersStats');
+            playersDiv.innerHTML = Object.values(gameData.players).map(p => `
+                <div class="player-card ${gameData.currentTurn === p.id ? 'active' : ''}" style="border-left-color: ${p.color}">
+                    <div class="player-avatar" style="background: ${p.color}20">${p.emoji}</div>
+                    <div class="player-name">${p.name}</div>
+                    <div class="player-money">💰 ${p.money}</div>
+                </div>
+            `).join('');
+            
+            const currentPlayer = gameData.players[gameData.currentTurn];
+            const isMyTurn = gameData.currentTurn === myPlayerId;
+            document.getElementById('turnBadge').innerHTML = isMyTurn ? '🎲 TURA TA' : `⏳ Rândul lui ${currentPlayer?.name || '?'}`;
+            
+            const rollBtn = document.getElementById('rollBtn');
+            const endBtn = document.getElementById('endTurnBtn');
+            if (isMyTurn && !gameData.hasRolled) { rollBtn.disabled = false; endBtn.disabled = true; }
+            else if (isMyTurn && gameData.hasRolled) { rollBtn.disabled = true; endBtn.disabled = false; }
+            else { rollBtn.disabled = true; endBtn.disabled = true; }
+            
+            const boardDiv = document.getElementById('board');
+            const players = gameData.players;
+            boardDiv.innerHTML = TILES.map((tile, idx) => {
+                const playersOnTile = Object.values(players).filter(p => p.position === idx);
+                const owner = gameData.properties[idx]?.owner;
+                const ownerName = owner ? players[owner]?.name : null;
+                return `
+                    <div class="tile" onclick="showTileInfo(${idx})">
+                        <div class="tile-number">${idx + 1}</div>
+                        <div class="tile-color" style="background: ${tile.color}"></div>
+                        <div class="tile-info">
+                            <div class="tile-name">${tile.name}</div>
+                            <div class="tile-owner">${ownerName ? `👑 ${ownerName}` : tile.price > 0 ? `💰 ${tile.price} RON` : '📌'}</div>
+                        </div>
+                        <div class="tile-players">${playersOnTile.map(p => `<div class="tile-player-dot" style="background: ${p.color}" title="${p.name}"></div>`).join('')}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            const logDiv = document.getElementById('gameLog');
+            if (gameData.log) logDiv.innerHTML = gameData.log.map(l => `<div class="log-entry">${l}</div>`).join('');
+        }
+        
+        function showTileInfo(tileId) {
+            const tile = TILES[tileId];
+            const owner = gameData?.properties[tileId]?.owner;
+            const ownerName = owner ? gameData?.players[owner]?.name : "Nimeni";
+            showModal(tile.name, `Preț: ${tile.price} RON\nProprietar: ${ownerName}`, [{ text: "Închide", action: closeModal }]);
+        }
+    </script>
+</body>
+</html>
