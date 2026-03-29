@@ -2,128 +2,282 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Monopoly Romania</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Monopoly Romania - Multiplayer</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: 'Segoe UI', system-ui;
-            background: linear-gradient(135deg, #1a472a 0%, #0a1f12 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a2f1f 0%, #05140a 100%);
             min-height: 100vh;
-            color: white;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Premium Glass Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
             padding: 16px;
+            min-height: 100vh;
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 32px;
-            padding: 32px;
-            text-align: center;
-            border: 1px solid rgba(255,215,0,0.3);
-        }
+
+        /* Headers */
         h1 {
-            font-size: 48px;
+            font-size: 36px;
             background: linear-gradient(135deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            letter-spacing: 2px;
         }
-        input, select {
+
+        h2 {
+            font-size: 20px;
+            color: #FFD700;
+            margin-bottom: 16px;
+        }
+
+        /* Inputs */
+        input, .join-input {
             width: 100%;
             padding: 16px;
-            margin: 16px 0;
-            border-radius: 60px;
-            border: none;
             font-size: 16px;
-            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 60px;
+            background: rgba(0, 0, 0, 0.6);
             color: white;
+            transition: all 0.3s;
             text-align: center;
         }
-        button {
+
+        input:focus {
+            outline: none;
+            border-color: #FFD700;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Buttons */
+        .btn {
             background: linear-gradient(135deg, #FFD700, #FFA500);
-            padding: 16px 32px;
             border: none;
-            border-radius: 60px;
+            padding: 16px 24px;
             font-size: 18px;
             font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:active { transform: scale(0.98); }
-        .turn-badge {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            padding: 12px 24px;
             border-radius: 60px;
-            text-align: center;
-            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
             color: #1a1a2e;
-            margin-bottom: 16px;
+            margin-top: 12px;
         }
-        .stats {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 215, 0, 0.3);
         }
-        .stat {
-            background: rgba(0,0,0,0.5);
-            padding: 12px;
-            border-radius: 20px;
-            flex: 1;
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 28px 20px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
             text-align: center;
         }
-        .stat-value { font-size: 24px; font-weight: bold; color: #FFD700; }
-        .board {
-            background: rgba(0,0,0,0.3);
+
+        /* Game Header */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .room-code {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 20px;
+            letter-spacing: 3px;
+            color: #1a1a2e;
+        }
+
+        .turn-badge {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Player Stats */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 20px;
+            padding: 12px;
+            text-align: center;
+            border-left: 4px solid;
+            transition: all 0.2s;
+        }
+
+        .player-card.active {
+            background: rgba(255, 215, 0, 0.2);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .player-money {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        /* Board */
+        .board {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
             padding: 12px;
             max-height: 45vh;
             overflow-y: auto;
-            margin-bottom: 16px;
+            margin: 16px 0;
         }
+
         .tile {
-            background: rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 10px 12px;
             margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: all 0.2s;
             cursor: pointer;
         }
+
+        .tile:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .tile-number {
             width: 32px;
             height: 32px;
-            background: #FFD700;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: #1a1a2e;
             font-size: 12px;
+            color: #1a1a2e;
         }
-        .tile-name { font-size: 13px; font-weight: bold; flex: 1; }
-        .token {
-            width: 24px;
-            height: 24px;
+
+        .tile-color {
+            width: 6px;
+            height: 40px;
+            border-radius: 3px;
+        }
+
+        .tile-info {
+            flex: 1;
+        }
+
+        .tile-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .tile-owner {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .tile-players {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tile-player-dot {
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             border: 2px solid white;
         }
+
+        /* Dice Area */
         .dice-area {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+            padding: 24px;
             text-align: center;
-            margin-bottom: 16px;
+            margin: 16px 0;
         }
-        .dice {
+
+        .dice-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 24px;
             margin-bottom: 20px;
         }
+
         .die {
             width: 70px;
             height: 70px;
@@ -132,45 +286,46 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 42px;
             font-weight: bold;
             color: #333;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
+
+        .die.rolling {
+            animation: diceRoll 0.1s infinite;
+        }
+
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .action-buttons {
             display: flex;
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        .action-btn {
-            padding: 12px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            border: none;
-        }
-        .primary { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a2e; }
-        .secondary { background: rgba(255,255,255,0.2); color: white; }
-        .log {
-            background: rgba(0,0,0,0.6);
-            border-radius: 16px;
+
+        /* Log */
+        .game-log {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
             padding: 12px;
-            max-height: 120px;
+            max-height: 140px;
             overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        .log-entry {
             font-size: 11px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-family: monospace;
         }
-        .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
-        }
-        .player-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -178,374 +333,582 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
         }
+
         .modal-content {
-            background: #1a1a2e;
-            border-radius: 24px;
-            padding: 24px;
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+            border-radius: 32px;
+            padding: 32px;
+            max-width: 90%;
+            width: 320px;
             text-align: center;
             border: 2px solid #FFD700;
+        }
+
+        .modal-content h3 {
+            color: #FFD700;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        /* Status */
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 12px;
+            border-radius: 60px;
+            text-align: center;
+            z-index: 100;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .status.error {
+            background: #e74c3c;
+        }
+
+        .status.success {
+            background: #27ae60;
+        }
+
+        /* Waiting Room */
+        .waiting-players {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .waiting-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 60px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,215,0,0.3);
+            border-top-color: #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="gameScreen">
-            <div class="turn-badge" id="turnText">Joc Pass-and-Play</div>
-            <div class="stats">
-                <div class="stat"><div class="stat-value" id="currentMoney">1500</div><div>💰 Bani</div></div>
-                <div class="stat"><div class="stat-value" id="currentPos">1</div><div>📍 Poziție</div></div>
-                <div class="stat"><div class="stat-value" id="currentProps">0</div><div>🏠 Proprietăți</div></div>
+    <div class="container" id="app">
+        <!-- Create/Join Screen -->
+        <div id="lobbyScreen" class="card" style="margin-top: 40px;">
+            <h1>🎲 MONOPOLY</h1>
+            <p style="margin: 16px 0; color: #FFD700;">ROMÂNIA</p>
+            <p style="margin-bottom: 24px; font-size: 14px;">Multiplayer - Fiecare pe telefonul său</p>
+            
+            <input type="text" id="playerNameInput" placeholder="Numele tău" maxlength="15" style="text-align: left; padding-left: 20px;">
+            
+            <button class="btn" onclick="createGame()">✨ Creează Joc Nou</button>
+            <div style="margin: 16px 0; text-align: center; color: rgba(255,255,255,0.5);">sau</div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="joinCodeInput" placeholder="Cod camera (6 cifre)" maxlength="6" style="text-align: center; flex: 1;">
+                <button class="btn btn-secondary" onclick="joinGame()" style="width: auto; padding: 16px 24px;">🔗 Intră</button>
             </div>
-            
+        </div>
+
+        <!-- Waiting Room -->
+        <div id="waitingScreen" style="display: none;">
+            <div class="card">
+                <h2>🕐 Așteptând jucători</h2>
+                <div class="room-code" id="roomCodeDisplay">------</div>
+                <div id="waitingPlayersList" class="waiting-players"></div>
+                <div id="startGameBtn" style="display: none;">
+                    <button class="btn" onclick="startGame()">🎮 Începe Jocul</button>
+                </div>
+                <p style="margin-top: 20px; font-size: 12px; opacity: 0.6;">Așteaptă ca toți jucătorii să se conecteze...</p>
+            </div>
+        </div>
+
+        <!-- Main Game -->
+        <div id="gameScreen" style="display: none;">
+            <div class="game-header">
+                <div class="room-code" id="gameRoomCode">------</div>
+                <div class="turn-badge" id="turnBadge">Încărcare...</div>
+            </div>
+
+            <div id="playersStats" class="players-grid"></div>
+
             <div class="board" id="board"></div>
-            
+
             <div class="dice-area">
-                <div class="dice">
+                <div class="dice-container">
                     <div class="die" id="die1">⚀</div>
                     <div class="die" id="die2">⚀</div>
                 </div>
                 <div class="action-buttons">
-                    <button class="action-btn primary" id="rollBtn" onclick="rollDice()">🎲 Aruncă Zarul</button>
-                    <button class="action-btn secondary" id="endBtn" onclick="endTurn()" disabled>⏭️ Termină Tura</button>
-                </div>
-                <div class="action-buttons">
-                    <button class="action-btn secondary" onclick="resetGame()">🔄 Joc Nou</button>
+                    <button class="btn" id="rollBtn" onclick="rollDice()" style="width: auto; padding: 14px 28px;">🎲 Aruncă Zarul</button>
+                    <button class="btn btn-secondary" id="endTurnBtn" onclick="endTurn()" style="width: auto; padding: 14px 28px;" disabled>⏭️ Termină</button>
                 </div>
             </div>
-            
-            <div class="log" id="log"></div>
+
+            <div class="game-log" id="gameLog"></div>
         </div>
     </div>
-    
+
     <div id="modal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle"></h3>
             <p id="modalMsg"></p>
-            <div id="modalBtns"></div>
+            <div id="modalBtns" class="modal-buttons"></div>
         </div>
     </div>
 
     <script>
-        // Game state - Pass and Play version (single device)
-        let players = [];
-        let currentPlayer = 0;
-        let hasRolled = false;
-        let currentRoll = 0;
-        let gameLog = [];
+        // ====================================================================
+        // FIREBASE CONFIGURATION (Free tier - replace with yours)
+        // ====================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKeyReplaceWithYourOwn",  // <-- YOU NEED TO REPLACE THIS
+            authDomain: "monopoly-romania.firebaseapp.com",
+            databaseURL: "https://monopoly-romania-default-rtdb.firebaseio.com",
+            projectId: "monopoly-romania",
+            storageBucket: "monopoly-romania.firebasestorage.app",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
         
-        // Romanian Monopoly board (40 tiles)
-        const tiles = [
-            "Pornire", "Rahova", "Cufărul Comunității", "Giulești", "Impozit pe Venit",
-            "Gara Progresu", "Vitan", "Șansă", "Pantelimon", "Berceni",
-            "Închisoare", "Titan", "Uzina Electrică", "Colentina", "Tei",
-            "Gara Obor", "B-dul Timișoara", "Cufărul Comunității", "B-dul Brașov", "Drumul Taberei",
-            "Parcare Gratuită", "B-dul Carol I", "Șansă", "B-dul Kogălniceanu", "B-dul Eroilor",
-            "Gara Basarab", "B-dul Titulescu", "B-dul 1 Mai", "Uzina de Apă", "Calea Dorobanților",
-            "Du-te la Închisoare", "Piața Unirii", "Cotroceni", "Cufărul Comunității", "Calea Victoriei",
-            "Gara de Nord", "Șansă", "B-dul Magheru", "Taxă de Lux", "B-dul Primăverii"
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ====================================================================
+        // GAME CONSTANTS
+        // ====================================================================
+        const TILES = [
+            {id:0, name:"Pornire", color:"#FFD700", price:0, type:"go"},
+            {id:1, name:"Rahova", color:"#955436", price:60, type:"property"},
+            {id:2, name:"Cufărul Comunității", color:"#90EE90", price:0, type:"chest"},
+            {id:3, name:"Giulești", color:"#955436", price:60, type:"property"},
+            {id:4, name:"Impozit pe Venit", color:"#FF4444", price:200, type:"tax"},
+            {id:5, name:"Gara Progresu", color:"#333", price:200, type:"railroad"},
+            {id:6, name:"Vitan", color:"#ACD9ED", price:100, type:"property"},
+            {id:7, name:"Șansă", color:"#87CEEB", price:0, type:"chance"},
+            {id:8, name:"Pantelimon", color:"#ACD9ED", price:100, type:"property"},
+            {id:9, name:"Berceni", color:"#ACD9ED", price:120, type:"property"},
+            {id:10, name:"Închisoare", color:"#808080", price:0, type:"jail"},
+            {id:11, name:"Titan", color:"#E6A8D7", price:140, type:"property"},
+            {id:12, name:"Uzina Electrică", color:"#CCC", price:150, type:"utility"},
+            {id:13, name:"Colentina", color:"#E6A8D7", price:140, type:"property"},
+            {id:14, name:"Tei", color:"#E6A8D7", price:160, type:"property"},
+            {id:15, name:"Gara Obor", color:"#333", price:200, type:"railroad"},
+            {id:16, name:"B-dul Timișoara", color:"#FAA61A", price:180, type:"property"},
+            {id:17, name:"Cufărul Comunității", color:"#90EE90", price:0, type:"chest"},
+            {id:18, name:"B-dul Brașov", color:"#FAA61A", price:180, type:"property"},
+            {id:19, name:"Drumul Taberei", color:"#FAA61A", price:200, type:"property"},
+            {id:20, name:"Parcare Gratuită", color:"#FFF", price:0, type:"free"},
+            {id:21, name:"B-dul Carol I", color:"#ED1B24", price:220, type:"property"},
+            {id:22, name:"Șansă", color:"#87CEEB", price:0, type:"chance"},
+            {id:23, name:"B-dul Kogălniceanu", color:"#ED1B24", price:220, type:"property"},
+            {id:24, name:"B-dul Eroilor", color:"#ED1B24", price:240, type:"property"},
+            {id:25, name:"Gara Basarab", color:"#333", price:200, type:"railroad"},
+            {id:26, name:"B-dul Titulescu", color:"#FFF200", price:260, type:"property"},
+            {id:27, name:"B-dul 1 Mai", color:"#FFF200", price:260, type:"property"},
+            {id:28, name:"Uzina de Apă", color:"#CCC", price:150, type:"utility"},
+            {id:29, name:"Calea Dorobanților", color:"#FFF200", price:280, type:"property"},
+            {id:30, name:"Du-te la Închisoare", color:"#808080", price:0, type:"go_to_jail"},
+            {id:31, name:"Piața Unirii", color:"#1FB25A", price:300, type:"property"},
+            {id:32, name:"Cotroceni", color:"#1FB25A", price:300, type:"property"},
+            {id:33, name:"Cufărul Comunității", color:"#90EE90", price:0, type:"chest"},
+            {id:34, name:"Calea Victoriei", color:"#1FB25A", price:320, type:"property"},
+            {id:35, name:"Gara de Nord", color:"#333", price:200, type:"railroad"},
+            {id:36, name:"Șansă", color:"#87CEEB", price:0, type:"chance"},
+            {id:37, name:"B-dul Magheru", color:"#0D4C92", price:350, type:"property"},
+            {id:38, name:"Taxă de Lux", color:"#FF4444", price:100, type:"tax"},
+            {id:39, name:"B-dul Primăverii", color:"#0D4C92", price:400, type:"property"}
         ];
         
-        const tileColors = [
-            "#FFD700", "#955436", "#90EE90", "#955436", "#FF4444",
-            "#333", "#ACD9ED", "#87CEEB", "#ACD9ED", "#ACD9ED",
-            "#808080", "#E6A8D7", "#CCC", "#E6A8D7", "#E6A8D7",
-            "#333", "#FAA61A", "#90EE90", "#FAA61A", "#FAA61A",
-            "#FFF", "#ED1B24", "#87CEEB", "#ED1B24", "#ED1B24",
-            "#333", "#FFF200", "#FFF200", "#CCC", "#FFF200",
-            "#808080", "#1FB25A", "#1FB25A", "#90EE90", "#1FB25A",
-            "#333", "#87CEEB", "#0D4C92", "#FF4444", "#0D4C92"
-        ];
+        const PLAYER_COLORS = ["#FF4444", "#4444FF", "#44FF44", "#FFFF44", "#FF44FF", "#FF8844", "#FF88FF", "#44FFFF"];
+        const PLAYER_EMOJIS = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"];
         
-        const tilePrices = [
-            0, 60, 0, 60, 200, 200, 100, 0, 100, 120,
-            0, 140, 150, 140, 160, 200, 180, 0, 180, 200,
-            0, 220, 0, 220, 240, 200, 260, 260, 150, 280,
-            0, 300, 300, 0, 320, 200, 0, 350, 100, 400
-        ];
+        // ====================================================================
+        // GLOBAL STATE
+        // ====================================================================
+        let currentRoomId = null;
+        let myPlayerId = null;
+        let myPlayerName = null;
+        let isAdmin = false;
+        let gameData = null;
+        let turnListener = null;
+        let gameListener = null;
         
-        // Properties ownership
-        let properties = {};
+        // ====================================================================
+        // UI HELPERS
+        // ====================================================================
+        function showStatus(msg, type) {
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.innerText = msg;
+            document.body.appendChild(status);
+            setTimeout(() => status.remove(), 3000);
+        }
         
-        function init() {
-            // Setup players
-            const numPlayers = prompt("Câți jucători? (2-8)", "4");
-            let count = parseInt(numPlayers);
-            if (isNaN(count) || count < 2) count = 2;
-            if (count > 8) count = 8;
+        function showModal(title, msg, buttons) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMsg').innerText = msg;
+            const btnsDiv = document.getElementById('modalBtns');
+            btnsDiv.innerHTML = '';
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.innerText = btn.text;
+                button.className = 'btn btn-secondary';
+                button.style.margin = '0';
+                button.onclick = () => {
+                    btn.action();
+                    closeModal();
+                };
+                btnsDiv.appendChild(button);
+            });
+            document.getElementById('modal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        function generateRoomCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+        
+        // ====================================================================
+        // GAME ACTIONS
+        // ====================================================================
+        function createGame() {
+            myPlayerName = document.getElementById('playerNameInput').value.trim();
+            if (!myPlayerName) {
+                showStatus("Introdu un nume!", "error");
+                return;
+            }
             
-            for (let i = 0; i < count; i++) {
-                const name = prompt(`Numele jucătorului ${i+1}:`, `Jucător ${i+1}`);
-                players.push({
-                    id: i,
-                    name: name || `Jucător ${i+1}`,
-                    color: ["#FF4444", "#4444FF", "#44FF44", "#FFFF44", "#FF44FF", "#FF8844", "#FF88FF", "#44FFFF"][i],
+            const roomCode = generateRoomCode();
+            currentRoomId = roomCode;
+            myPlayerId = myPlayerName + "_" + Date.now();
+            isAdmin = true;
+            
+            const initialGameState = {
+                players: {},
+                currentTurn: null,
+                hasRolled: false,
+                dice: [1, 1],
+                log: ["🎲 Joc creat! Așteptând jucători..."],
+                properties: {},
+                gameStarted: false,
+                adminId: myPlayerId,
+                turnOrder: []
+            };
+            
+            // Initialize properties
+            TILES.forEach(tile => {
+                initialGameState.properties[tile.id] = { owner: null, houses: 0 };
+            });
+            
+            // Add creator as first player
+            initialGameState.players[myPlayerId] = {
+                id: myPlayerId,
+                name: myPlayerName,
+                color: PLAYER_COLORS[0],
+                emoji: PLAYER_EMOJIS[0],
+                money: 1500,
+                position: 0,
+                properties: [],
+                isActive: true
+            };
+            initialGameState.turnOrder = [myPlayerId];
+            
+            // Save to Firebase
+            database.ref('games/' + roomCode).set(initialGameState);
+            
+            // Join the game
+            joinGameRoom(roomCode);
+        }
+        
+        function joinGame() {
+            myPlayerName = document.getElementById('playerNameInput').value.trim();
+            if (!myPlayerName) {
+                showStatus("Introdu un nume!", "error");
+                return;
+            }
+            
+            const roomCode = document.getElementById('joinCodeInput').value.trim();
+            if (!roomCode || roomCode.length !== 6) {
+                showStatus("Cod invalid! Trebuie să aibă 6 cifre.", "error");
+                return;
+            }
+            
+            currentRoomId = roomCode;
+            myPlayerId = myPlayerName + "_" + Date.now();
+            isAdmin = false;
+            
+            joinGameRoom(roomCode);
+        }
+        
+        function joinGameRoom(roomCode) {
+            const gameRef = database.ref('games/' + roomCode);
+            
+            gameRef.once('value', (snapshot) => {
+                const game = snapshot.val();
+                if (!game) {
+                    showStatus("Jocul nu există! Verifică codul.", "error");
+                    return;
+                }
+                
+                // Add player to the game
+                const playerCount = Object.keys(game.players || {}).length;
+                if (playerCount >= 8) {
+                    showStatus("Jocul este plin! (max 8 jucători)", "error");
+                    return;
+                }
+                
+                const newPlayer = {
+                    id: myPlayerId,
+                    name: myPlayerName,
+                    color: PLAYER_COLORS[playerCount % PLAYER_COLORS.length],
+                    emoji: PLAYER_EMOJIS[playerCount % PLAYER_EMOJIS.length],
                     money: 1500,
                     position: 0,
                     properties: [],
-                    houses: {}
-                });
-            }
-            
-            // Initialize properties
-            for (let i = 0; i < tiles.length; i++) {
-                properties[i] = { owner: null, houses: 0 };
-            }
-            
-            addLog("🎲 Jocul a început!");
-            addLog(`👥 Jucători: ${players.map(p => p.name).join(", ")}`);
-            addLog(`🎲 Primul jucător: ${players[0].name}`);
-            
-            renderGame();
-        }
-        
-        function addLog(msg) {
-            gameLog.unshift(msg);
-            if (gameLog.length > 30) gameLog.pop();
-            renderLog();
-        }
-        
-        function renderLog() {
-            const logDiv = document.getElementById('log');
-            if (logDiv) {
-                logDiv.innerHTML = gameLog.map(l => `<div class="log-entry">${l}</div>`).join('');
-            }
-        }
-        
-        function renderGame() {
-            // Update stats for current player
-            const player = players[currentPlayer];
-            document.getElementById('currentMoney').innerText = player.money;
-            document.getElementById('currentPos').innerText = player.position + 1;
-            document.getElementById('currentProps').innerText = player.properties.length;
-            document.getElementById('turnText').innerHTML = `🎲 Rândul lui: ${player.name}`;
-            
-            // Update buttons
-            const rollBtn = document.getElementById('rollBtn');
-            const endBtn = document.getElementById('endBtn');
-            if (!hasRolled) {
-                rollBtn.disabled = false;
-                endBtn.disabled = true;
-            } else {
-                rollBtn.disabled = true;
-                endBtn.disabled = false;
-            }
-            
-            renderBoard();
-        }
-        
-        function renderBoard() {
-            const boardDiv = document.getElementById('board');
-            if (!boardDiv) return;
-            
-            boardDiv.innerHTML = tiles.map((tile, i) => {
-                const playersOnTile = players.filter(p => p.position === i);
-                const owner = properties[i].owner;
-                const ownerName = owner !== null ? players.find(p => p.id === owner)?.name : null;
+                    isActive: true
+                };
                 
-                return `
-                    <div class="tile" onclick="showTileInfo(${i})">
-                        <div class="tile-number">${i+1}</div>
-                        <div style="width:8px; height:40px; background:${tileColors[i]}; border-radius:4px;"></div>
-                        <div class="tile-name">${tile}</div>
-                        <div style="display:flex;gap:4px;">
-                            ${playersOnTile.map(p => `<div class="token" style="background:${p.color}"></div>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                const updates = {};
+                updates[`players/${myPlayerId}`] = newPlayer;
+                updates[`turnOrder/${playerCount}`] = myPlayerId;
+                
+                gameRef.update(updates);
+                
+                // Set up listeners
+                setupGameListeners(roomCode);
+                
+                // Show waiting screen
+                document.getElementById('lobbyScreen').style.display = 'none';
+                document.getElementById('waitingScreen').style.display = 'block';
+                document.getElementById('roomCodeDisplay').innerText = roomCode;
+                
+                if (isAdmin) {
+                    document.getElementById('startGameBtn').style.display = 'block';
+                }
+                
+                // Listen for player updates
+                database.ref('games/' + roomCode + '/players').on('value', (snap) => {
+                    const players = snap.val() || {};
+                    updateWaitingPlayers(players);
+                });
+            });
         }
         
-        function showTileInfo(tileId) {
-            const tile = tiles[tileId];
-            const price = tilePrices[tileId];
-            const owner = properties[tileId].owner;
-            const ownerName = owner !== null ? players.find(p => p.id === owner)?.name : "Nimeni";
+        function updateWaitingPlayers(players) {
+            const container = document.getElementById('waitingPlayersList');
+            container.innerHTML = Object.values(players).map(p => `
+                <div class="waiting-player">
+                    <div style="font-size: 32px;">${p.emoji}</div>
+                    <div style="flex:1; font-weight: bold;">${p.name}</div>
+                    <div style="color: ${p.color}; font-size: 20px;">●</div>
+                </div>
+            `).join('');
+        }
+        
+        function setupGameListeners(roomCode) {
+            const gameRef = database.ref('games/' + roomCode);
             
-            let msg = `${tile}\n`;
-            if (price > 0) msg += `Preț: ${price} RON\n`;
-            msg += `Proprietar: ${ownerName}`;
+            gameRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.gameStarted) {
+                    // Game started - switch to game screen
+                    document.getElementById('waitingScreen').style.display = 'none';
+                    document.getElementById('gameScreen').style.display = 'block';
+                    document.getElementById('gameRoomCode').innerText = roomCode;
+                    gameData = data;
+                    renderGame();
+                }
+            });
+        }
+        
+        function startGame() {
+            if (!isAdmin) return;
             
-            alert(msg);
+            const gameRef = database.ref('games/' + currentRoomId);
+            gameRef.update({
+                gameStarted: true,
+                currentTurn: gameData.turnOrder[0],
+                hasRolled: false,
+                log: ["🎲 Jocul a început! Mult noroc!"]
+            });
         }
         
         function rollDice() {
-            if (hasRolled) {
-                alert("Ai dat deja zarul în această tură!");
+            if (!gameData || gameData.currentTurn !== myPlayerId) {
+                showStatus("Nu este rândul tău!", "error");
+                return;
+            }
+            if (gameData.hasRolled) {
+                showStatus("Ai aruncat deja zarul în această tură!", "error");
                 return;
             }
             
             const dice1 = Math.floor(Math.random() * 6) + 1;
             const dice2 = Math.floor(Math.random() * 6) + 1;
             const total = dice1 + dice2;
-            currentRoll = total;
-            hasRolled = true;
             
             // Animate dice
             animateDice(dice1, dice2);
             
-            // Move player
-            const player = players[currentPlayer];
+            const player = gameData.players[myPlayerId];
             const oldPos = player.position;
             let newPos = (oldPos + total) % 40;
-            player.position = newPos;
+            
+            const updates = {
+                dice: [dice1, dice2],
+                hasRolled: true
+            };
+            
+            // Move player
+            updates[`players/${myPlayerId}/position`] = newPos;
             
             // Check for passing GO
             if (newPos < oldPos) {
-                player.money += 200;
-                addLog(`${player.name} a trecut pe la Pornire și a primit 200 RON`);
+                updates[`players/${myPlayerId}/money`] = player.money + 200;
+                addLogEntry(`${player.name} a trecut pe la Pornire +200 RON`);
             }
             
-            addLog(`${player.name} a dat ${dice1} și ${dice2} → ${total} pași → ${tiles[newPos]}`);
-            
             // Handle tile
-            handleTile(newPos, player);
+            const tile = TILES[newPos];
+            addLogEntry(`${player.name} a dat ${dice1}+${dice2}=${total} → ${tile.name}`);
             
-            renderGame();
+            // Property logic
+            if (tile.type === "property" && tile.price > 0) {
+                const property = gameData.properties[newPos];
+                if (!property.owner) {
+                    // Show buy dialog via modal
+                    showModal("Cumpără proprietate", `${tile.name} - ${tile.price} RON`, [
+                        { text: "✅ Cumpără", action: () => buyProperty(newPos, tile.price) },
+                        { text: "❌ Refuză", action: () => declineProperty(newPos) }
+                    ]);
+                    return;
+                } else if (property.owner !== myPlayerId) {
+                    const owner = gameData.players[property.owner];
+                    const rent = Math.floor(tile.price / 10);
+                    if (player.money >= rent) {
+                        updates[`players/${myPlayerId}/money`] = player.money - rent;
+                        updates[`players/${property.owner}/money`] = owner.money + rent;
+                        addLogEntry(`${player.name} a plătit ${rent} RON chirie lui ${owner.name}`);
+                    }
+                }
+            }
             
             // Check for double
-            if (dice1 === dice2) {
-                addLog(`${player.name} a dat dublă! Mai joacă o dată.`);
-                hasRolled = false;
-                renderGame();
+            if (dice1 !== dice2) {
+                // End turn after this
+                const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
+                const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
+                updates.currentTurn = gameData.turnOrder[nextIndex];
+                updates.hasRolled = false;
+                addLogEntry(`Rândul lui ${gameData.players[gameData.turnOrder[nextIndex]].name}`);
+            } else {
+                addLogEntry(`${player.name} a dat dublă! Mai joacă o dată.`);
+                updates.hasRolled = false;
+            }
+            
+            database.ref('games/' + currentRoomId).update(updates);
+        }
+        
+        function buyProperty(tileId, price) {
+            const player = gameData.players[myPlayerId];
+            if (player.money >= price) {
+                const updates = {};
+                updates[`players/${myPlayerId}/money`] = player.money - price;
+                updates[`players/${myPlayerId}/properties/${tileId}`] = true;
+                updates[`properties/${tileId}/owner`] = myPlayerId;
+                addLogEntry(`${player.name} a cumpărat ${TILES[tileId].name} pentru ${price} RON`);
+                
+                // End turn
+                const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
+                const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
+                updates.currentTurn = gameData.turnOrder[nextIndex];
+                updates.hasRolled = false;
+                addLogEntry(`Rândul lui ${gameData.players[gameData.turnOrder[nextIndex]].name}`);
+                
+                database.ref('games/' + currentRoomId).update(updates);
             }
         }
         
-        function handleTile(tileId, player) {
-            const tile = tiles[tileId];
-            const price = tilePrices[tileId];
-            const prop = properties[tileId];
+        function declineProperty(tileId) {
+            const player = gameData.players[myPlayerId];
+            addLogEntry(`${player.name} a refuzat să cumpere ${TILES[tileId].name}`);
             
-            // Special tiles
-            if (tile === "Du-te la Închisoare") {
-                player.position = 10; // Jail position
-                addLog(`${player.name} a fost trimis la închisoare!`);
-                endTurn();
-                return;
-            }
+            const updates = {};
+            const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
+            const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
+            updates.currentTurn = gameData.turnOrder[nextIndex];
+            updates.hasRolled = false;
+            addLogEntry(`Rândul lui ${gameData.players[gameData.turnOrder[nextIndex]].name}`);
             
-            if (tile === "Șansă" || tile === "Cufărul Comunității") {
-                const cards = [
-                    "Avansați la Pornire +200 RON",
-                    "Plătiți taxă 100 RON",
-                    "Primiți 200 RON",
-                    "Mergeti la închisoare",
-                    "Plătiți 50 RON",
-                    "Primiți 100 RON"
-                ];
-                const card = cards[Math.floor(Math.random() * cards.length)];
-                addLog(`${player.name} a primit: ${card}`);
-                
-                if (card.includes("+200")) { player.money += 200; }
-                else if (card.includes("Primiți 200")) { player.money += 200; }
-                else if (card.includes("Primiți 100")) { player.money += 100; }
-                else if (card.includes("Plătiți 100")) { player.money -= 100; }
-                else if (card.includes("Plătiți 50")) { player.money -= 50; }
-                else if (card.includes("închisoare")) {
-                    player.position = 10;
-                    addLog(`${player.name} a fost trimis la închisoare!`);
-                }
-                return;
-            }
-            
-            if (tile === "Impozit pe Venit") {
-                player.money -= 200;
-                addLog(`${player.name} a plătit impozit 200 RON`);
-                return;
-            }
-            
-            if (tile === "Taxă de Lux") {
-                player.money -= 100;
-                addLog(`${player.name} a plătit taxă de lux 100 RON`);
-                return;
-            }
-            
-            // Property
-            if (price > 0 && prop.owner === null) {
-                const buy = confirm(`Cumpărați ${tile} pentru ${price} RON?`);
-                if (buy && player.money >= price) {
-                    player.money -= price;
-                    prop.owner = player.id;
-                    player.properties.push(tileId);
-                    addLog(`${player.name} a cumpărat ${tile} pentru ${price} RON`);
-                } else {
-                    addLog(`${player.name} a refuzat să cumpere ${tile}`);
-                }
-            } 
-            else if (price > 0 && prop.owner !== null && prop.owner !== player.id) {
-                const owner = players.find(p => p.id === prop.owner);
-                const rent = Math.floor(price / 10);
-                if (player.money >= rent) {
-                    player.money -= rent;
-                    owner.money += rent;
-                    addLog(`${player.name} a plătit ${rent} RON chirie lui ${owner.name} pentru ${tile}`);
-                } else {
-                    addLog(`${player.name} a dat faliment! Nu are suficienți bani pentru chirie.`);
-                }
-            }
-            
-            // Check for bankruptcy
-            if (player.money < 0) {
-                addLog(`${player.name} a dat faliment și a pierdut jocul!`);
-                players.splice(currentPlayer, 1);
-                if (players.length === 1) {
-                    addLog(`🏆 ${players[0].name} a câștigat jocul! 🏆`);
-                    resetGame();
-                } else if (currentPlayer >= players.length) {
-                    currentPlayer = 0;
-                }
-                hasRolled = false;
-                renderGame();
-            }
+            database.ref('games/' + currentRoomId).update(updates);
         }
         
         function endTurn() {
-            if (!hasRolled) {
-                alert("Trebuie să dai cu zarul mai întâi!");
+            if (!gameData || gameData.currentTurn !== myPlayerId) {
+                showStatus("Nu este rândul tău!", "error");
+                return;
+            }
+            if (!gameData.hasRolled) {
+                showStatus("Trebuie să arunci zarul mai întâi!", "error");
                 return;
             }
             
-            currentPlayer = (currentPlayer + 1) % players.length;
-            hasRolled = false;
-            addLog(`--- Rândul lui ${players[currentPlayer].name} ---`);
-            renderGame();
-        }
-        
-        function resetGame() {
-            if (confirm("Începeți un joc nou?")) {
-                players = [];
-                currentPlayer = 0;
-                hasRolled = false;
-                gameLog = [];
-                properties = {};
-                init();
-            }
-        }
-        
-        function animateDice(d1, d2) {
-            const die1 = document.getElementById('die1');
-            const die2 = document.getElementById('die2');
-            const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+            const updates = {};
+            const currentIndex = gameData.turnOrder.indexOf(myPlayerId);
+            const nextIndex = (currentIndex + 1) % gameData.turnOrder.length;
+            updates.currentTurn = gameData.turnOrder[nextIndex];
+            updates.hasRolled = false;
+            addLogEntry(`${gameData.players[myPlayerId].name} și-a terminat tura. Rândul lui ${gameData.players[gameData.turnOrder[nextIndex]].name}`);
             
-            let count = 0;
-            const interval = setInterval(() => {
-                die1.innerText = faces[Math.floor(Math.random() * 6)];
-                die2.innerText = faces[Math.floor(Math.random() * 6)];
-                count++;
-                if (count > 10) {
-                    clearInterval(interval);
-                    die1.innerText = faces[d1 - 1];
-                    die2.innerText = faces[d2 - 1];
-                }
-            }, 50);
+            database.ref('games/' + currentRoomId).update(updates);
         }
         
-        // Start the game
-        init();
-    </script>
-</body>
-</html>
+        function addLogEntry(message) {
+            const gameRef = database.ref('games/' + currentRoomId);
+            gameRef.once('value', (snap) => {
+                const currentLog = snap.val()?.log || [];
+                const newLog = [message, ...currentLog].
