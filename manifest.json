@@ -1,0 +1,18 @@
+{
+  "name": "Monopoly PWA: Ediția România",
+  "short_name": "MonopolyMD",
+  "description": "Joc multiplayer de tranzacții imobiliare în timp real.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#0d1117",
+  "theme_color": "#39ff14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBkMTExNyIvPjx0ZXh0IHk9IjYwIiB4PSIxMCIgZmlsbD0iIzM5ZmYxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTBweCIgZm9udC13ZWlnaHQ9ImJvbGQiPk08L3RleHQ+PC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
