@@ -2,927 +2,157 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Monopoly PWA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Capitala — joc de tranzacții imobiliare</title>
+  <meta name="description" content="Cumpără Bucureștiul, cartier cu cartier. Joc de tranzacții imobiliare online cu prietenii sau contra boților.">
+  <meta name="theme-color" content="#f3efe7">
+  <meta name="color-scheme" content="light dark">
   <link rel="manifest" href="manifest.json">
-  <style>
-    :root {
-      --bg: #0d1117;
-      --neon: #39ff14;
-      --neon-glow: 0 0 10px rgba(57, 255, 20, 0.5);
-      --glass: rgba(20, 25, 30, 0.7);
-      --glass-border: 1px solid rgba(57, 255, 20, 0.2);
-      --text: #e6edf3;
-      --board-bg: #cce3c6;
-      --p1: #ff0055;
-      --p2: #00d2ff;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: var(--bg); color: var(--text); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-    
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 3px; }
-
-    /* UI Containers */
-    .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; transition: opacity 0.3s; }
-    .hidden { opacity: 0; pointer-events: none; z-index: -1; }
-    .glass-panel { background: var(--glass); backdrop-filter: blur(10px); border: var(--glass-border); border-radius: 16px; padding: 20px; box-shadow: var(--neon-glow); }
-    
-    h1, h2, h3 { color: var(--neon); text-shadow: 0 0 5px var(--neon); text-align: center; margin-bottom: 15px; }
-    input, button { background: #161b22; color: var(--text); border: 1px solid var(--neon); padding: 12px; border-radius: 8px; margin: 5px 0; width: 100%; font-size: 16px; min-height: 44px; outline: none; }
-    button { background: rgba(57, 255, 20, 0.1); cursor: pointer; transition: 0.2s; font-weight: bold; }
-    button:active { background: var(--neon); color: #000; }
-    button:disabled { border-color: #555; color: #555; background: transparent; cursor: not-allowed; }
-
-    /* Game Layout */
-    #game-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; position: relative; }
-    
-    /* Top Bar: Stats */
-    #top-bar { display: flex; justify-content: space-between; padding: 10px; background: var(--glass); border-bottom: var(--glass-border); z-index: 10; font-size: 14px; }
-    .player-stat { display: flex; flex-direction: column; align-items: center; width: 48%; padding: 5px; border-radius: 8px; }
-    .active-turn { box-shadow: 0 0 15px var(--neon); background: rgba(57, 255, 20, 0.15); }
-    .stat-name { font-weight: bold; font-size: 16px; }
-    .stat-money { color: var(--neon); font-family: monospace; font-size: 18px; }
-
-    /* Board Area */
-    #board-wrapper { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; touch-action: pan-x pan-y; }
-    #board { width: 800px; height: 800px; background: var(--board-bg); border: 2px solid #000; display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr); position: relative; transform-origin: center; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-    
-    .tile { border: 1px solid #000; display: flex; flex-direction: column; position: relative; font-size: 9px; text-align: center; color: #000; background: #fff; overflow: hidden; }
-    .tile .header { height: 25%; width: 100%; border-bottom: 1px solid #000; }
-    .tile .name { padding: 2px; font-weight: bold; flex: 1; display: flex; align-items: center; justify-content: center; }
-    .tile .price { font-weight: bold; padding-bottom: 2px; }
-    
-    /* Property Colors */
-    .brown { background: #8B4513; } .lightblue { background: #87CEEB; } .pink { background: #FF69B4; } .orange { background: #FFA500; }
-    .red { background: #FF0000; } .yellow { background: #FFFF00; } .green { background: #008000; } .darkblue { background: #00008B; }
-    
-    /* Tile grid placement */
-    .row-top { grid-row: 1; } .row-bottom { grid-row: 11; }
-    .col-left { grid-column: 1; } .col-right { grid-column: 11; }
-    
-    /* Board Center */
-    #board-center { grid-column: 2 / 11; grid-row: 2 / 11; background: var(--board-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    
-    /* Dice */
-    #dice-container { display: flex; gap: 10px; margin-bottom: 20px; }
-    .die { width: 50px; height: 50px; background: #fff; border-radius: 10px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #000; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-    @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .rolling { animation: roll 0.5s linear infinite; }
-
-    /* Tokens */
-    .token { width: 20px; height: 20px; border-radius: 50%; position: absolute; z-index: 5; border: 2px solid #fff; box-shadow: 0 0 5px #000; transition: all 0.3s ease; }
-    .token.p1 { background: var(--p1); } .token.p2 { background: var(--p2); }
-    
-    /* Houses/Hotels indicator */
-    .building-container { position: absolute; top: 0; left: 0; width: 100%; height: 25%; display: flex; justify-content: center; align-items: center; gap: 2px; }
-    .house { width: 6px; height: 6px; background: #0f0; border: 1px solid #000; }
-    .hotel { width: 10px; height: 10px; background: #f00; border: 1px solid #000; }
-    
-    /* Owner bar */
-    .owner-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; }
-
-    /* Bottom Sheet / Action Panel */
-    #action-panel { height: 35vh; background: var(--glass); border-top: var(--glass-border); display: flex; flex-direction: column; padding: 10px; z-index: 20; backdrop-filter: blur(15px); }
-    #log { flex: 1; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 8px; margin-bottom: 10px; font-size: 13px; font-family: monospace; }
-    .log-entry { margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 3px; }
-    #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    
-    /* Modals (Auctions, Properties) */
-    .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; z-index: 200; display: none; }
-    .modal.active { display: block; }
-    .flex-row { display: flex; gap: 10px; }
-
-    /* Social/Chat */
-    #chat-btn { position: absolute; right: 10px; top: 80px; width: 44px; height: 44px; border-radius: 50%; background: var(--glass); border: var(--glass-border); color: var(--neon); display: flex; align-items: center; justify-content: center; z-index: 30; font-size: 20px; }
-    #chat-panel { position: absolute; right: 0; top: 0; width: 250px; height: 100%; background: var(--glass); border-left: var(--glass-border); z-index: 40; transform: translateX(100%); transition: 0.3s; display: flex; flex-direction: column; }
-    #chat-panel.open { transform: translateX(0); }
-    #chat-messages { flex: 1; overflow-y: auto; padding: 10px; font-size: 14px; }
-    .chat-msg { margin-bottom: 8px; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 5px; }
-    .reactions { display: flex; justify-content: space-around; padding: 5px; border-top: 1px solid #333; }
-    .reactions span { font-size: 20px; cursor: pointer; }
-  </style>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Capitala">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
 </head>
-<body>
+<body data-screen="home">
+  <noscript><p class="noscript">Capitala are nevoie de JavaScript ca să funcționeze.</p></noscript>
 
-  <!-- Lobby Screen -->
-  <div id="lobby-screen" class="screen">
-    <div class="glass-panel" style="width: 90%; max-width: 350px;">
-      <h1>MONOPOLY<br><span style="font-size:16px;color:#fff">Ediția România</span></h1>
-      <input type="text" id="player-name" placeholder="Numele tău" maxlength="12">
-      <hr style="border-color:#333; margin: 15px 0;">
-      <button id="btn-create" onclick="Lobby.createRoom()">Creează Cameră Nouă</button>
-      <div style="text-align:center; margin:10px 0;">SAU</div>
-      <input type="text" id="room-code-input" placeholder="Cod Cameră (Ex: ABCD)" style="text-align:center; text-transform:uppercase;">
-      <button id="btn-join" onclick="Lobby.joinRoom()">Alătură-te</button>
-      <div id="lobby-msg" style="color:red; text-align:center; margin-top:10px; font-size:12px;"></div>
-    </div>
-  </div>
-
-  <!-- Waiting Screen -->
-  <div id="waiting-screen" class="screen hidden">
-    <div class="glass-panel" style="text-align: center;">
-      <h2>Cameră Creată!</h2>
-      <p style="margin-bottom: 10px;">Codul camerei:</p>
-      <h1 id="display-room-code" style="letter-spacing: 5px; background: #000; padding: 10px; border-radius: 8px;"></h1>
-      <p style="font-size: 12px; color: #aaa; margin-top: 20px;">Așteptăm jucătorul 2...</p>
-    </div>
-  </div>
-
-  <!-- Game Container -->
-  <div id="game-container" class="hidden">
-    <!-- Top Stats -->
-    <div id="top-bar">
-      <div id="stat-p1" class="player-stat active-turn">
-        <div class="stat-name" id="name-p1">P1</div>
-        <div class="stat-money" id="money-p1">1500 RON</div>
+  <!-- HOME -->
+  <section class="screen screen-center" id="screen-home">
+    <div class="home">
+      <div class="brand-block">
+        <img class="brand-icon" src="icons/icon.svg" alt="" width="84" height="84">
+        <h1 class="brand-title">Capitala</h1>
+        <p class="brand-tag">Cumpără Bucureștiul, cartier cu cartier.</p>
       </div>
-      <div id="stat-p2" class="player-stat">
-        <div class="stat-name" id="name-p2">P2</div>
-        <div class="stat-money" id="money-p2">1500 RON</div>
+      <div class="card home-card">
+        <label class="field">
+          <span>Cum te cheamă?</span>
+          <input class="input" id="home-name" maxlength="16" autocomplete="nickname" placeholder="Numele tău" enterkeyhint="done">
+        </label>
+        <div id="home-continue" class="continue-box" hidden></div>
+        <button class="btn btn-primary btn-big btn-block" data-go="online">🌐 Joacă online cu prietenii</button>
+        <button class="btn btn-big btn-block" data-go="local">📱 Joacă pe acest telefon <small>contra boților sau cu prietenii lângă tine</small></button>
+        <button class="btn btn-ghost btn-block" data-go="install" id="home-install" hidden>⬇️ Instalează aplicația</button>
       </div>
+      <button class="link-btn" data-go="rules">📖 Cum se joacă</button>
     </div>
+  </section>
 
-    <!-- Board -->
-    <div id="board-wrapper">
-      <div id="board">
-        <div id="board-center">
-          <h1 style="font-size: 40px; margin-bottom: 30px; transform: rotate(-45deg);">MONOPOLY</h1>
-          <div id="dice-container">
-            <div id="die1" class="die">1</div>
-            <div id="die2" class="die">1</div>
+  <!-- LOCAL SETUP -->
+  <section class="screen" id="screen-local" hidden>
+    <header class="bar"><button class="icon-btn" data-go="home" aria-label="Înapoi">←</button><h2>Joc pe acest telefon</h2></header>
+    <div class="page">
+      <div class="card">
+        <h3 class="card-title">Jucători</h3>
+        <ol class="seats" id="local-seats"></ol>
+        <button class="btn btn-ghost btn-block" id="local-add">+ Adaugă jucător</button>
+        <p class="hint" id="local-hint"></p>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Reguli</h3>
+        <div class="opts" id="local-settings"></div>
+      </div>
+      <button class="btn btn-primary btn-big btn-block sticky-cta" id="local-start">Începe jocul</button>
+    </div>
+  </section>
+
+  <!-- ONLINE: create / join -->
+  <section class="screen" id="screen-online" hidden>
+    <header class="bar"><button class="icon-btn" data-go="home" aria-label="Înapoi">←</button><h2>Joc online</h2></header>
+    <div class="page">
+      <div class="card">
+        <h3 class="card-title">Cameră nouă</h3>
+        <p class="hint">Creezi o cameră și le trimiți prietenilor linkul sau codul de 4 litere.</p>
+        <button class="btn btn-primary btn-big btn-block" id="online-create">Creează o cameră</button>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Ai primit un cod?</h3>
+        <form id="join-form" class="join-row" autocomplete="off">
+          <input class="input code-input" id="join-code" maxlength="4" placeholder="ABCD" autocapitalize="characters" spellcheck="false" aria-label="Codul camerei" enterkeyhint="go">
+          <button class="btn btn-primary" type="submit">Intră</button>
+        </form>
+      </div>
+      <p class="msg" id="online-msg" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ONLINE: lobby -->
+  <section class="screen" id="screen-room" hidden>
+    <header class="bar"><button class="icon-btn" id="room-leave" aria-label="Ieși din cameră">←</button><h2>Camera</h2></header>
+    <div class="page">
+      <div class="card room-code-card">
+        <span class="hint">Codul camerei</span>
+        <div class="room-code" id="room-code">····</div>
+        <button class="btn btn-primary btn-block" id="room-share">🔗 Invită prieteni</button>
+        <p class="conn-warn" id="room-conn" hidden>Reconectare la server…</p>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Jucători</h3>
+        <ol class="seats" id="room-seats"></ol>
+        <button class="btn btn-ghost btn-block" id="room-addbot">+ Adaugă un bot</button>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Reguli</h3>
+        <div class="opts" id="room-settings"></div>
+      </div>
+      <button class="btn btn-primary btn-big btn-block sticky-cta" id="room-start">Începe jocul</button>
+      <p class="hint center" id="room-wait">Așteptăm ca gazda să înceapă jocul…</p>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="screen-game" hidden>
+    <header class="topbar">
+      <button class="icon-btn" data-act="menu" aria-label="Meniu">☰</button>
+      <div class="topbar-mid"><span class="brand-mini">Capitala</span><button class="room-chip" id="room-chip" data-act="share" hidden></button></div>
+      <span class="round-label" id="round-label"></span>
+      <button class="icon-btn" data-act="sound" aria-label="Sunet">🔊</button>
+    </header>
+    <div class="net-banner" id="net-banner" hidden>Conexiune pierdută — reîncerc…</div>
+    <div class="game-layout">
+      <div class="board-col">
+        <div class="board-wrap">
+          <div class="board" id="board">
+            <div class="center" id="center">
+              <div class="c-head" id="c-head"></div>
+              <div class="dice" id="dice">
+                <div class="die" data-v="1"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="die" data-v="1"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="c-msg" id="c-msg" aria-live="polite"></div>
+              <div class="c-act" id="c-act"></div>
+              <svg class="skyline" viewBox="0 0 300 60" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                <path d="M0 60V38h14V24h10v14h8V30h16v-8h10v8h6V16h18v12h8V36h10V20l8-6 8 6v16h12V26h14v-6h4v6h10v10h8V18h20v18h6V28h12v10h10V22h16v16h12V30h14v8h10V24h12v36Z"/>
+                <path class="win" d="M17 28h2v2h-2zM61 22h2v2h-2zM86 22h2v2h-2zM90 30h2v2h-2zM132 26h2v2h-2zM176 24h2v2h-2zM182 30h2v2h-2zM230 28h2v2h-2zM262 30h2v2h-2z"/>
+              </svg>
+            </div>
           </div>
         </div>
-        <!-- Tokens -->
-        <div id="token-p1" class="token p1"></div>
-        <div id="token-p2" class="token p2"></div>
       </div>
+      <aside class="side-col">
+        <div class="players" id="players"></div>
+        <nav class="tabs" id="tabs" role="tablist">
+          <button role="tab" data-tab="log">Jurnal</button>
+          <button role="tab" data-tab="props">Proprietăți</button>
+          <button role="tab" data-tab="trades">Schimburi<span class="badge" id="badge-trades"></span></button>
+          <button role="tab" data-tab="chat" class="only-online">Chat<span class="badge" id="badge-chat"></span></button>
+        </nav>
+        <div class="panels">
+          <div class="panel" data-panel="log" id="panel-log"></div>
+          <div class="panel" data-panel="props" id="panel-props" hidden></div>
+          <div class="panel" data-panel="trades" id="panel-trades" hidden></div>
+          <div class="panel panel-chat" data-panel="chat" id="panel-chat" hidden></div>
+        </div>
+      </aside>
     </div>
+  </section>
 
-    <!-- Action Panel / Bottom Sheet -->
-    <div id="action-panel">
-      <div id="log"></div>
-      <div id="controls">
-        <button id="btn-roll" onclick="GameLoop.roll()" disabled>Dă cu Zarul</button>
-        <button id="btn-end" onclick="GameLoop.endTurn()" disabled>Termină Tura</button>
-        <button id="btn-manage" onclick="UI.showManage()">Gestionează Prop.</button>
-        <button id="btn-jail" onclick="GameLoop.payJail()" style="display:none;">Ieși din închisoare (50 RON)</button>
-      </div>
-    </div>
-
-    <!-- Social Features -->
-    <button id="chat-btn" onclick="UI.toggleChat()">💬</button>
-    <div id="chat-panel">
-      <div style="padding:10px; border-bottom:var(--glass-border); display:flex; justify-content:space-between;">
-        <span style="color:var(--neon); font-weight:bold;">Chat</span>
-        <span onclick="UI.toggleChat()" style="cursor:pointer;">✖</span>
-      </div>
-      <div id="chat-messages"></div>
-      <div class="reactions">
-        <span onclick="Chat.sendReaction('👍')">👍</span>
-        <span onclick="Chat.sendReaction('👎')">👎</span>
-        <span onclick="Chat.sendReaction('😂')">😂</span>
-        <span onclick="Chat.sendReaction('🤬')">🤬</span>
-        <span onclick="Chat.sendReaction('💸')">💸</span>
-      </div>
-      <div style="padding:10px;">
-        <input type="text" id="chat-input" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') Chat.sendMsg()">
-      </div>
-    </div>
-  </div>
-
-  <!-- Buy Modal -->
-  <div id="modal-buy" class="modal glass-panel">
-    <h3 id="buy-title">Cumpără Proprietate</h3>
-    <p id="buy-desc" style="text-align:center; margin-bottom:15px;"></p>
-    <div class="flex-row">
-      <button onclick="GameLoop.confirmBuy()">Cumpără</button>
-      <button onclick="GameLoop.declineBuy()">Refuză (Licit.)</button>
-    </div>
-  </div>
-
-  <!-- Auction Modal -->
-  <div id="modal-auction" class="modal glass-panel">
-    <h3>Licitație: <span id="auction-prop"></span></h3>
-    <p style="text-align:center; margin-bottom:5px;">Cea mai mare ofertă: <span id="auction-bid" style="color:var(--neon)"></span></p>
-    <p style="text-align:center; margin-bottom:15px; font-size:12px;" id="auction-turn"></p>
-    <div class="flex-row">
-      <button id="btn-bid" onclick="Auction.placeBid()">Licitează +10</button>
-      <button id="btn-pass" onclick="Auction.pass()">Pas</button>
-    </div>
-  </div>
-
-  <!-- Manage Properties Modal -->
-  <div id="modal-manage" class="modal glass-panel" style="max-height: 80vh; overflow-y: auto;">
-    <h3>Gestionează Proprietăți</h3>
-    <div id="manage-list" style="margin-bottom:15px;"></div>
-    <button onclick="UI.hideManage()">Închide</button>
-  </div>
-
-  <!-- End Game Screen -->
-  <div id="end-screen" class="screen hidden">
-    <div class="glass-panel" style="text-align:center;">
-      <h1 id="winner-name" style="font-size: 40px; color: gold;"></h1>
-      <h2>A CÂȘTIGAT!</h2>
-      <div id="end-stats" style="text-align:left; margin: 20px 0; font-family:monospace;"></div>
-      <button onclick="location.reload()">Înapoi la meniu</button>
-    </div>
-  </div>
-
-  <!-- Firebase & Game Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBD9yxz2SP35xzNvN9Q5MYM3lcQgd8snAA",
-      authDomain: "monopolymd.firebaseapp.com",
-      databaseURL: "https://monopolymd-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "monopolymd",
-      storageBucket: "monopolymd.firebasestorage.app",
-      messagingSenderId: "175522958186",
-      appId: "1:175522958186:web:fb224b774ec3ea287bf313"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    /* --- BOARD DATA (40 Romanian Tiles Exact Order) --- */
-    const BOARD = [
-      { id: 0, name: "Pornire", type: "go", price: 0 },
-      { id: 1, name: "Rahova", type: "prop", color: "brown", price: 60, rent: [2, 10, 30, 90, 160, 250], hc: 50 },
-      { id: 2, name: "Cufărul Com.", type: "chest", price: 0 },
-      { id: 3, name: "Giulești", type: "prop", color: "brown", price: 60, rent: [4, 20, 60, 180, 320, 450], hc: 50 },
-      { id: 4, name: "Imp. Venit", type: "tax", price: 200 },
-      { id: 5, name: "Gara Progresu", type: "rr", price: 200, rent: [25, 50, 100, 200] },
-      { id: 6, name: "Vitan", type: "prop", color: "lightblue", price: 100, rent: [6, 30, 90, 270, 400, 550], hc: 50 },
-      { id: 7, name: "Șansă", type: "chance", price: 0 },
-      { id: 8, name: "Pantelimon", type: "prop", color: "lightblue", price: 100, rent: [6, 30, 90, 270, 400, 550], hc: 50 },
-      { id: 9, name: "Berceni", type: "prop", color: "lightblue", price: 120, rent: [8, 40, 100, 300, 450, 600], hc: 50 },
-      { id: 10, name: "Închisoare", type: "jail", price: 0 },
-      { id: 11, name: "Titan", type: "prop", color: "pink", price: 140, rent: [10, 50, 150, 450, 625, 750], hc: 100 },
-      { id: 12, name: "Uzina Elec.", type: "util", price: 150 },
-      { id: 13, name: "Colentina", type: "prop", color: "pink", price: 140, rent: [10, 50, 150, 450, 625, 750], hc: 100 },
-      { id: 14, name: "Tei", type: "prop", color: "pink", price: 160, rent: [12, 60, 180, 500, 700, 900], hc: 100 },
-      { id: 15, name: "Gara Obor", type: "rr", price: 200, rent: [25, 50, 100, 200] },
-      { id: 16, name: "Bd Timișoara", type: "prop", color: "orange", price: 180, rent: [14, 70, 200, 550, 750, 950], hc: 100 },
-      { id: 17, name: "Cufărul Com.", type: "chest", price: 0 },
-      { id: 18, name: "Bd Brașov", type: "prop", color: "orange", price: 180, rent: [14, 70, 200, 550, 750, 950], hc: 100 },
-      { id: 19, name: "Dr Taberei", type: "prop", color: "orange", price: 200, rent: [16, 80, 220, 600, 800, 1000], hc: 100 },
-      { id: 20, name: "Parcare", type: "parking", price: 0 },
-      { id: 21, name: "Bd Carol I", type: "prop", color: "red", price: 220, rent: [18, 90, 250, 700, 875, 1050], hc: 150 },
-      { id: 22, name: "Șansă", type: "chance", price: 0 },
-      { id: 23, name: "Bd Kogăln.", type: "prop", color: "red", price: 220, rent: [18, 90, 250, 700, 875, 1050], hc: 150 },
-      { id: 24, name: "Bd Eroilor", type: "prop", color: "red", price: 240, rent: [20, 100, 300, 750, 925, 1100], hc: 150 },
-      { id: 25, name: "Gara Basarab", type: "rr", price: 200, rent: [25, 50, 100, 200] },
-      { id: 26, name: "Bd Titulescu", type: "prop", color: "yellow", price: 260, rent: [22, 110, 330, 800, 975, 1150], hc: 150 },
-      { id: 27, name: "Bd 1 Mai", type: "prop", color: "yellow", price: 260, rent: [22, 110, 330, 800, 975, 1150], hc: 150 },
-      { id: 28, name: "Uzina Apă", type: "util", price: 150 },
-      { id: 29, name: "C. Dorobanți", type: "prop", color: "yellow", price: 280, rent: [24, 120, 360, 850, 1025, 1200], hc: 150 },
-      { id: 30, name: "Du-te la Înc.", type: "gotojail", price: 0 },
-      { id: 31, name: "Piața Unirii", type: "prop", color: "green", price: 300, rent: [26, 130, 390, 900, 1100, 1275], hc: 200 },
-      { id: 32, name: "Cotroceni", type: "prop", color: "green", price: 300, rent: [26, 130, 390, 900, 1100, 1275], hc: 200 },
-      { id: 33, name: "Cufărul Com.", type: "chest", price: 0 },
-      { id: 34, name: "C. Victoriei", type: "prop", color: "green", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], hc: 200 },
-      { id: 35, name: "Gara de Nord", type: "rr", price: 200, rent: [25, 50, 100, 200] },
-      { id: 36, name: "Șansă", type: "chance", price: 0 },
-      { id: 37, name: "Bd Magheru", type: "prop", color: "darkblue", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], hc: 200 },
-      { id: 38, name: "Taxă Lux", type: "tax", price: 100 },
-      { id: 39, name: "Bd Primăverii", type: "prop", color: "darkblue", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], hc: 200 }
-    ];
-
-    const CARDS = {
-      chance: [
-        { t: "Mergi la Pornire (+200)", a: (p) => moveAbsolute(p, 0) },
-        { t: "Amendă viteză (-15)", a: (p) => addMoney(p, -15) },
-        { t: "Mergi la Gara de Nord", a: (p) => moveAbsolute(p, 35) },
-        { t: "Du-te la Închisoare", a: (p) => goToJail(p) },
-        { t: "Ieși din închisoare gratis", a: (p) => state.players[p].jailFree++ },
-        { t: "Mergi 3 spații înapoi", a: (p) => moveRelative(p, -3) },
-        { t: "Reparații generale (-25/casă, -100/hotel)", a: (p) => chargeBuildings(p, 25, 100) },
-        { t: "Câștigi la loto (+150)", a: (p) => addMoney(p, 150) },
-        { t: "Mergi la Magheru", a: (p) => moveAbsolute(p, 37) },
-        { t: "Plătește impozit (-50)", a: (p) => addMoney(p, -50) }
-      ],
-      chest: [
-        { t: "Eroare bancară (+200)", a: (p) => addMoney(p, 200) },
-        { t: "Plătește medicul (-50)", a: (p) => addMoney(p, -50) },
-        { t: "Primești dobândă (+25)", a: (p) => addMoney(p, 25) },
-        { t: "Du-te la Închisoare", a: (p) => goToJail(p) },
-        { t: "Ieși din închisoare gratis", a: (p) => state.players[p].jailFree++ },
-        { t: "Asigurare viață ajunsă la termen (+100)", a: (p) => addMoney(p, 100) },
-        { t: "Plătește spitalul (-100)", a: (p) => addMoney(p, -100) },
-        { t: "Moștenire (+100)", a: (p) => addMoney(p, 100) },
-        { t: "Vânzare acțiuni (+50)", a: (p) => addMoney(p, 50) },
-        { t: "Mergi la Pornire", a: (p) => moveAbsolute(p, 0) }
-      ]
-    };
-
-    /* --- GLOBAL STATE --- */
-    let myId = localStorage.getItem('monopoly_pid') || "p" + Math.floor(Math.random()*100000);
-    localStorage.setItem('monopoly_pid', myId);
-    let myPlayerId = 'p1'; // 'p1' or 'p2'
-    let roomId = null;
-    let state = {
-      players: { 
-        p1: { name: "", pos: 0, money: 1500, jail: 0, jailFree: 0, doubles: 0 }, 
-        p2: { name: "", pos: 0, money: 1500, jail: 0, jailFree: 0, doubles: 0 } 
-      },
-      board: {}, // { id: { owner: 'p1', houses: 0, mortgaged: false } }
-      turn: 'p1', phase: 'idle', // idle, rolled, buy_decision, auction
-      auction: null, log: [], chat: [], dice: [1, 1],
-      stats: { p1: { turns: 0, spent: 0 }, p2: { turns: 0, spent: 0 } },
-      winner: null
-    };
-
-    /* --- INITIALIZE BOARD UI --- */
-    function renderBoard() {
-      const b = document.getElementById('board');
-      // Clean old tiles but keep center
-      Array.from(b.children).forEach(c => { if(c.id !== 'board-center' && !c.classList.contains('token')) c.remove(); });
-      
-      const posMap = [];
-      // Bottom (11 to 1)
-      for(let i=11; i>=1; i--) posMap.push({c: i, r: 11});
-      // Left (10 to 2)
-      for(let i=10; i>=2; i--) posMap.push({c: 1, r: i});
-      // Top (1 to 11)
-      for(let i=1; i<=11; i++) posMap.push({c: i, r: 1});
-      // Right (2 to 10)
-      for(let i=2; i<=10; i++) posMap.push({c: 11, r: i});
-
-      BOARD.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.className = `tile col-${posMap[i].c} row-${posMap[i].r}`;
-        div.style.gridColumn = posMap[i].c; div.style.gridRow = posMap[i].r;
-        div.id = `tile-${i}`;
-        
-        let header = '';
-        if(t.color) header = `<div class="header ${t.color}"></div>`;
-        let price = t.price ? `<div class="price">${t.price} RON</div>` : '';
-        
-        div.innerHTML = `
-          ${header}
-          <div class="building-container" id="bldg-${i}"></div>
-          <div class="name">${t.name}</div>
-          ${price}
-          <div class="owner-bar" id="owner-${i}"></div>
-        `;
-        b.appendChild(div);
-      });
-      updateBoardUI();
-    }
-
-    /* --- FIREBASE SYNC --- */
-    const sync = () => update(ref(db, `rooms/${roomId}/state`), state);
-    
-    function logMsg(msg) {
-      state.log.push(msg);
-      if(state.log.length > 50) state.log.shift();
-    }
-
-    /* --- GAME LOOP LOGIC --- */
-    window.GameLoop = {
-      roll: async () => {
-        if (state.turn !== myPlayerId || state.phase !== 'idle') return;
-        
-        // Roll animation sync
-        update(ref(db, `rooms/${roomId}/anim`), { rolling: true });
-        await new Promise(r => setTimeout(r, 600)); // wait anim
-        
-        let d1 = Math.floor(Math.random()*6)+1;
-        let d2 = Math.floor(Math.random()*6)+1;
-        state.dice = [d1, d2];
-        state.phase = 'rolled';
-        state.stats[myPlayerId].turns++;
-        logMsg(`${state.players[myPlayerId].name} a dat ${d1} și ${d2}.`);
-        
-        let p = state.players[myPlayerId];
-        
-        if (p.jail > 0) {
-          if (d1 === d2) {
-            logMsg(`${p.name} iese din închisoare cu dublă!`);
-            p.jail = 0; p.doubles = 0;
-            moveRelative(myPlayerId, d1+d2);
-          } else {
-            p.jail--;
-            logMsg(`${p.name} rămâne în închisoare. Zile rămase: ${p.jail}`);
-            state.phase = 'idle';
-            endTurnLocal();
-          }
-        } else {
-          if (d1 === d2) {
-            p.doubles++;
-            if (p.doubles === 3) {
-              logMsg(`${p.name} merge la închisoare (3 duble)!`);
-              p.doubles = 0;
-              goToJail(myPlayerId);
-              state.phase = 'idle';
-              endTurnLocal();
-              return;
-            }
-          } else {
-            p.doubles = 0;
-          }
-          moveRelative(myPlayerId, d1+d2);
-        }
-      },
-
-      payJail: () => {
-        let p = state.players[myPlayerId];
-        if (p.jail > 0 && p.money >= 50) {
-          addMoney(myPlayerId, -50);
-          p.jail = 0;
-          logMsg(`${p.name} a plătit 50 RON pentru a ieși.`);
-          sync();
-        } else if (p.jail > 0 && p.jailFree > 0) {
-          p.jailFree--;
-          p.jail = 0;
-          logMsg(`${p.name} a folosit un cartonaș "Ieși din închisoare".`);
-          sync();
-        }
-      },
-
-      endTurn: () => endTurnLocal(),
-
-      confirmBuy: () => {
-        let p = state.players[myPlayerId];
-        let t = BOARD[p.pos];
-        if (p.money >= t.price) {
-          addMoney(myPlayerId, -t.price);
-          state.board[p.pos] = { owner: myPlayerId, houses: 0, mortgaged: false };
-          logMsg(`${p.name} a cumpărat ${t.name}.`);
-          state.phase = 'idle';
-          UI.hideModal('modal-buy');
-          if(p.doubles === 0) endTurnLocal(); else sync();
-        }
-      },
-
-      declineBuy: () => {
-        UI.hideModal('modal-buy');
-        state.phase = 'auction';
-        let t = BOARD[state.players[myPlayerId].pos];
-        state.auction = { prop: p.pos, bid: Math.floor(t.price * 0.9), bidder: null, turn: myPlayerId, p1Pass: false, p2Pass: false };
-        logMsg(`Începe licitația pentru ${t.name}.`);
-        sync();
-      }
-    };
-
-    function endTurnLocal() {
-      let p = state.players[myPlayerId];
-      if (p.money < 0) {
-        handleBankruptcy(myPlayerId);
-        return;
-      }
-      if (p.doubles === 0 && state.phase !== 'buy_decision') {
-        state.turn = state.turn === 'p1' ? 'p2' : 'p1';
-      }
-      state.phase = 'idle';
-      sync();
-    }
-
-    /* --- MOVEMENT & LOGIC --- */
-    function moveRelative(pid, amount) {
-      let p = state.players[pid];
-      p.pos += amount;
-      if (p.pos >= 40) {
-        p.pos -= 40;
-        addMoney(pid, 200);
-        logMsg(`${p.name} a trecut pe la Pornire (+200).`);
-      }
-      handleLand(pid);
-    }
-
-    function moveAbsolute(pid, target) {
-      let p = state.players[pid];
-      if (target < p.pos && target !== 10) { // Passed GO
-        addMoney(pid, 200);
-        logMsg(`${p.name} a trecut pe la Pornire (+200).`);
-      }
-      p.pos = target;
-      handleLand(pid);
-    }
-
-    function goToJail(pid) {
-      state.players[pid].pos = 10;
-      state.players[pid].jail = 3;
-    }
-
-    function handleLand(pid) {
-      let t = BOARD[state.players[pid].pos];
-      let b = state.board[state.players[pid].pos];
-      let p = state.players[pid];
-      
-      if (t.type === 'gotojail') {
-        logMsg(`${p.name} merge la închisoare!`);
-        goToJail(pid);
-        endTurnLocal();
-        return;
-      }
-
-      if (t.type === 'tax') {
-        logMsg(`${p.name} plătește taxă: ${t.price}.`);
-        addMoney(pid, -t.price);
-        if(p.doubles===0) endTurnLocal(); else sync();
-        return;
-      }
-
-      if (t.type === 'chance' || t.type === 'chest') {
-        let deck = t.type === 'chance' ? CARDS.chance : CARDS.chest;
-        let card = deck[Math.floor(Math.random() * deck.length)];
-        logMsg(`${p.name} trage ${t.type}: ${card.t}`);
-        card.a(pid);
-        if(p.doubles===0 && t.type !== 'gotojail') endTurnLocal(); else sync();
-        return;
-      }
-
-      if (['prop', 'rr', 'util'].includes(t.type)) {
-        if (!b) {
-          if (p.money >= t.price) {
-            state.phase = 'buy_decision';
-            sync();
-            UI.showBuyModal(t);
-          } else {
-            GameLoop.declineBuy(); // Auto auction if no money
-          }
-        } else if (b.owner !== pid && !b.mortgaged) {
-          // Pay rent
-          let rent = calculateRent(state.players[pid].pos);
-          logMsg(`${p.name} îi plătește chirie lui ${state.players[b.owner].name}: ${rent} RON.`);
-          addMoney(pid, -rent);
-          addMoney(b.owner, rent);
-          if(p.doubles===0) endTurnLocal(); else sync();
-        } else {
-          if(p.doubles===0) endTurnLocal(); else sync();
-        }
-      } else {
-        if(p.doubles===0) endTurnLocal(); else sync();
-      }
-    }
-
-    function addMoney(pid, amt) {
-      state.players[pid].money += amt;
-      if(amt < 0) state.stats[pid].spent += Math.abs(amt);
-    }
-
-    function chargeBuildings(pid, hCost, htCost) {
-      let h=0, ht=0;
-      Object.keys(state.board).forEach(k => {
-        if(state.board[k].owner === pid) {
-          if(state.board[k].houses === 5) ht++;
-          else h += state.board[k].houses;
-        }
-      });
-      addMoney(pid, -(h*hCost + ht*htCost));
-    }
-
-    function calculateRent(posId) {
-      let t = BOARD[posId];
-      let b = state.board[posId];
-      if (t.type === 'prop') {
-        if (b.houses === 0) {
-          // check monopoly
-          let ownsAll = BOARD.filter(x => x.color === t.color).every(x => state.board[x.id] && state.board[x.id].owner === b.owner);
-          return ownsAll ? t.rent[0] * 2 : t.rent[0];
-        }
-        return t.rent[b.houses];
-      }
-      if (t.type === 'rr') {
-        let count = BOARD.filter(x => x.type === 'rr').filter(x => state.board[x.id] && state.board[x.id].owner === b.owner).length;
-        return t.rent[count - 1];
-      }
-      if (t.type === 'util') {
-        let count = BOARD.filter(x => x.type === 'util').filter(x => state.board[x.id] && state.board[x.id].owner === b.owner).length;
-        let roll = state.dice[0] + state.dice[1];
-        return count === 2 ? roll * 10 : roll * 4;
-      }
-      return 0;
-    }
-
-    /* --- AUCTION SYSTEM --- */
-    window.Auction = {
-      placeBid: () => {
-        let nBid = state.auction.bid + 10;
-        if (state.players[myPlayerId].money >= nBid) {
-          state.auction.bid = nBid;
-          state.auction.bidder = myPlayerId;
-          state.auction.turn = myPlayerId === 'p1' ? 'p2' : 'p1';
-          state.auction.p1Pass = false; state.auction.p2Pass = false;
-          logMsg(`${state.players[myPlayerId].name} licitează ${nBid}.`);
-          sync();
-        }
-      },
-      pass: () => {
-        state.auction[`${myPlayerId}Pass`] = true;
-        let other = myPlayerId === 'p1' ? 'p2' : 'p1';
-        
-        if (state.auction.p1Pass && state.auction.p2Pass) {
-           // Nobody bid at all
-           logMsg("Proprietatea a rămas nevândută.");
-           endAuction();
-        } else if (state.auction.bidder && state.auction[`${myPlayerId}Pass`]) {
-           // The other player wins
-           let winner = state.auction.bidder;
-           addMoney(winner, -state.auction.bid);
-           state.board[state.auction.prop] = { owner: winner, houses: 0, mortgaged: false };
-           logMsg(`${state.players[winner].name} a câștigat licitația pentru ${state.auction.bid} RON.`);
-           endAuction();
-        } else {
-           // Passed first bid, waiting for other
-           state.auction.turn = other;
-           logMsg(`${state.players[myPlayerId].name} a dat pas.`);
-           sync();
-        }
-      }
-    };
-
-    function endAuction() {
-      state.auction = null;
-      let currTurnPid = state.turn;
-      if (state.players[currTurnPid].doubles === 0) {
-        state.turn = state.turn === 'p1' ? 'p2' : 'p1';
-      }
-      state.phase = 'idle';
-      sync();
-    }
-
-    /* --- PROPERTY MANAGEMENT --- */
-    window.UI = {
-      showBuyModal: (t) => {
-        document.getElementById('buy-title').innerText = `Cumpără ${t.name}?`;
-        document.getElementById('buy-desc').innerText = `Preț: ${t.price} RON\nChirie: ${t.rent?t.rent[0]:0} RON`;
-        document.getElementById('modal-buy').classList.add('active');
-      },
-      hideModal: (id) => document.getElementById(id).classList.remove('active'),
-      
-      showManage: () => {
-        let list = document.getElementById('manage-list');
-        list.innerHTML = '';
-        let myProps = BOARD.filter(t => state.board[t.id] && state.board[t.id].owner === myPlayerId);
-        
-        if(myProps.length===0) list.innerHTML = "<p>Nu ai proprietăți.</p>";
-        myProps.forEach(t => {
-          let b = state.board[t.id];
-          let div = document.createElement('div');
-          div.style = "border:1px solid #333; padding:10px; margin-bottom:5px; border-radius:5px;";
-          
-          let html = `<strong>${t.name}</strong> - ${b.mortgaged ? 'Ipotecată' : 'Activă'} `;
-          if(t.type === 'prop') html += `(Case: ${b.houses===5 ? 'HOTEL' : b.houses})<br>`;
-          else html += '<br>';
-          
-          if(!b.mortgaged && b.houses === 0) html += `<button onclick="Manage.mortgage(${t.id})">Ipotecare (+${t.price/2})</button>`;
-          if(b.mortgaged) html += `<button onclick="Manage.unmortgage(${t.id})">Ridic Ipoteca (-${(t.price/2)*1.1})</button>`;
-          
-          if(t.type === 'prop' && !b.mortgaged) {
-            let ownsAll = BOARD.filter(x => x.color === t.color).every(x => state.board[x.id] && state.board[x.id].owner === myPlayerId);
-            if(ownsAll && b.houses < 5) html += `<button onclick="Manage.build(${t.id})">Construiește (-${t.hc})</button>`;
-            if(b.houses > 0) html += `<button onclick="Manage.sellHouse(${t.id})">Vinde Casă (+${t.hc/2})</button>`;
-          }
-          div.innerHTML = html;
-          list.appendChild(div);
-        });
-        document.getElementById('modal-manage').classList.add('active');
-      },
-      hideManage: () => UI.hideModal('modal-manage'),
-      toggleChat: () => document.getElementById('chat-panel').classList.toggle('open')
-    };
-
-    window.Manage = {
-      mortgage: (id) => {
-        let t = BOARD[id]; let b = state.board[id];
-        if(b.houses > 0) return alert("Vinde casele prima dată!");
-        b.mortgaged = true; addMoney(myPlayerId, t.price/2); sync(); UI.showManage();
-      },
-      unmortgage: (id) => {
-        let t = BOARD[id]; let cost = Math.floor((t.price/2)*1.1);
-        if(state.players[myPlayerId].money < cost) return alert("Bani insuficienți!");
-        state.board[id].mortgaged = false; addMoney(myPlayerId, -cost); sync(); UI.showManage();
-      },
-      build: (id) => {
-        let t = BOARD[id]; let b = state.board[id];
-        // Even build rule check simplified for logic limit: allowed if money exists.
-        if(state.players[myPlayerId].money < t.hc) return alert("Bani insuficienți!");
-        b.houses++; addMoney(myPlayerId, -t.hc); sync(); UI.showManage();
-      },
-      sellHouse: (id) => {
-        let t = BOARD[id]; let b = state.board[id];
-        b.houses--; addMoney(myPlayerId, t.hc/2); sync(); UI.showManage();
-      }
-    };
-
-    function handleBankruptcy(pid) {
-      logMsg(`${state.players[pid].name} a dat FALIMENT!`);
-      state.winner = pid === 'p1' ? 'p2' : 'p1';
-      sync();
-    }
-
-    function calculateNetWorth(pid) {
-      let p = state.players[pid];
-      let nw = p.money;
-      BOARD.forEach(t => {
-        let b = state.board[t.id];
-        if(b && b.owner === pid) {
-          if(!b.mortgaged) nw += t.price; else nw += t.price/2;
-          if(b.houses>0) nw += (b.houses * (t.hc||0)) / 2;
-        }
-      });
-      return nw;
-    }
-
-    /* --- LOBBY & SETUP --- */
-    window.Lobby = {
-      createRoom: async () => {
-        let n = document.getElementById('player-name').value || "Jucător 1";
-        roomId = Math.random().toString(36).substr(2, 4).toUpperCase();
-        myPlayerId = 'p1';
-        state.players.p1.name = n;
-        await set(ref(db, `rooms/${roomId}`), { state: state, users: { p1: myId } });
-        document.getElementById('lobby-screen').classList.add('hidden');
-        document.getElementById('display-room-code').innerText = roomId;
-        document.getElementById('waiting-screen').classList.remove('hidden');
-        listenToRoom();
-      },
-      joinRoom: async () => {
-        let n = document.getElementById('player-name').value || "Jucător 2";
-        let code = document.getElementById('room-code-input').value.toUpperCase();
-        if(code.length !== 4) return document.getElementById('lobby-msg').innerText = "Cod invalid.";
-        
-        const snap = await get(ref(db, `rooms/${code}`));
-        if(!snap.exists()) return document.getElementById('lobby-msg').innerText = "Camera nu există.";
-        
-        roomId = code;
-        let data = snap.val();
-        
-        // Reconnect logic
-        if (data.users.p1 === myId) { myPlayerId = 'p1'; } 
-        else if (data.users.p2 === myId) { myPlayerId = 'p2'; }
-        else if (!data.users.p2) {
-          myPlayerId = 'p2';
-          data.state.players.p2.name = n;
-          data.users.p2 = myId;
-          await update(ref(db, `rooms/${roomId}`), { "state/players/p2/name": n, "users/p2": myId });
-        } else {
-          return document.getElementById('lobby-msg').innerText = "Cameră plină.";
-        }
-        
-        document.getElementById('lobby-screen').classList.add('hidden');
-        listenToRoom();
-      }
-    };
-
-    function listenToRoom() {
-      onValue(ref(db, `rooms/${roomId}/state`), (snap) => {
-        if(snap.exists()) {
-          state = snap.val();
-          if(!state.board) state.board = {}; // firebase removes empty objects
-          if(!state.log) state.log = [];
-          if(!state.chat) state.chat = [];
-          updateUI();
-        }
-      });
-      onValue(ref(db, `rooms/${roomId}/anim`), (snap) => {
-        if(snap.exists() && snap.val().rolling) {
-          document.getElementById('die1').classList.add('rolling');
-          document.getElementById('die2').classList.add('rolling');
-          setTimeout(() => {
-            document.getElementById('die1').classList.remove('rolling');
-            document.getElementById('die2').classList.remove('rolling');
-            updateUI(); // force dice update
-          }, 600);
-        }
-      });
-      // Cleanup on disconnect
-      onDisconnect(ref(db, `rooms/${roomId}/users/${myPlayerId}`)).remove();
-    }
-
-    /* --- UI UPDATES --- */
-    function updateUI() {
-      // Start game when P2 joins
-      if(state.players.p2.name && document.getElementById('waiting-screen').className !== 'screen hidden') {
-        document.getElementById('waiting-screen').classList.add('hidden');
-        document.getElementById('game-container').classList.remove('hidden');
-        renderBoard();
-        logMsg("Jocul a început!");
-      }
-
-      // Stats
-      document.getElementById('name-p1').innerText = state.players.p1.name;
-      document.getElementById('money-p1').innerText = `${state.players.p1.money} RON`;
-      document.getElementById('name-p2').innerText = state.players.p2.name;
-      document.getElementById('money-p2').innerText = `${state.players.p2.money} RON`;
-
-      document.getElementById('stat-p1').classList.toggle('active-turn', state.turn === 'p1');
-      document.getElementById('stat-p2').classList.toggle('active-turn', state.turn === 'p2');
-
-      // Tokens
-      updateToken('p1'); updateToken('p2');
-
-      // Dice
-      document.getElementById('die1').innerText = state.dice[0];
-      document.getElementById('die2').innerText = state.dice[1];
-
-      // Controls
-      let isMyTurn = state.turn === myPlayerId;
-      document.getElementById('btn-roll').disabled = !(isMyTurn && state.phase === 'idle');
-      document.getElementById('btn-end').disabled = !(isMyTurn && state.phase === 'rolled');
-      document.getElementById('btn-jail').style.display = (isMyTurn && state.players[myPlayerId].jail > 0 && state.phase === 'idle') ? 'block' : 'none';
-
-      // Board Ownership & Buildings
-      updateBoardUI();
-
-      // Log
-      let logDiv = document.getElementById('log');
-      logDiv.innerHTML = state.log.map(l => `<div class="log-entry">${l}</div>`).join('');
-      logDiv.scrollTop = logDiv.scrollHeight;
-
-      // Chat
-      let chatDiv = document.getElementById('chat-messages');
-      chatDiv.innerHTML = state.chat.map(c => `<div class="chat-msg"><b>${c.n}:</b> ${c.m}</div>`).join('');
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-
-      // Auctions
-      if (state.auction) {
-        document.getElementById('modal-auction').classList.add('active');
-        document.getElementById('auction-prop').innerText = BOARD[state.auction.prop].name;
-        document.getElementById('auction-bid').innerText = state.auction.bid + " RON";
-        let myAuctionTurn = state.auction.turn === myPlayerId;
-        document.getElementById('auction-turn').innerText = myAuctionTurn ? "E rândul tău!" : "Așteaptă adversarul...";
-        document.getElementById('btn-bid').disabled = !myAuctionTurn;
-        document.getElementById('btn-pass').disabled = !myAuctionTurn;
-      } else {
-        UI.hideModal('modal-auction');
-      }
-
-      // Win state
-      if (state.winner) {
-        document.getElementById('game-container').classList.add('hidden');
-        document.getElementById('end-screen').classList.remove('hidden');
-        document.getElementById('winner-name').innerText = state.players[state.winner].name;
-        document.getElementById('end-stats').innerHTML = `
-          P1 Net Worth: ${calculateNetWorth('p1')} RON<br>
-          P2 Net Worth: ${calculateNetWorth('p2')} RON<br>
-        `;
-      }
-    }
-
-    function updateToken(pid) {
-      let tId = state.players[pid].pos;
-      let tile = document.getElementById(`tile-${tId}`);
-      let token = document.getElementById(`token-${pid}`);
-      if(tile && token) {
-        let rect = tile.getBoundingClientRect();
-        let boardRect = document.getElementById('board').getBoundingClientRect();
-        let ox = pid === 'p1' ? 10 : 30; // offset
-        let oy = pid === 'p1' ? 10 : 30;
-        token.style.left = (rect.left - boardRect.left + ox) + 'px';
-        token.style.top = (rect.top - boardRect.top + oy) + 'px';
-      }
-    }
-
-    function updateBoardUI() {
-      BOARD.forEach((t, i) => {
-        let b = state.board[i];
-        let bar = document.getElementById(`owner-${i}`);
-        let bldg = document.getElementById(`bldg-${i}`);
-        if(bar) bar.style.background = b ? (b.owner === 'p1' ? 'var(--p1)' : 'var(--p2)') : 'transparent';
-        if(bldg) {
-          bldg.innerHTML = '';
-          if(b && b.mortgaged) {
-             bldg.innerHTML = '<span style="color:red;font-weight:bold;font-size:10px;">IPOTECAT</span>';
-          } else if(b && b.houses > 0) {
-            if(b.houses === 5) bldg.innerHTML = '<div class="hotel"></div>';
-            else for(let h=0; h<b.houses; h++) bldg.innerHTML += '<div class="house"></div>';
-          }
-        }
-      });
-    }
-
-    /* --- CHAT SYSTEM --- */
-    window.Chat = {
-      sendMsg: () => {
-        let input = document.getElementById('chat-input');
-        if(input.value.trim() !== '') {
-          state.chat.push({ n: state.players[myPlayerId].name, m: input.value });
-          if(state.chat.length > 30) state.chat.shift();
-          sync();
-          input.value = '';
-        }
-      },
-      sendReaction: (emoji) => {
-        state.chat.push({ n: state.players[myPlayerId].name, m: emoji });
-        if(state.chat.length > 30) state.chat.shift();
-        sync();
-      }
-    };
-
-    // Init Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(() => console.log('PWA SW Registered'));
-    }
-
-    // Force init board off-screen for accurate dimensions
-    renderBoard();
-  </script>
+  <div id="sheet-root"></div>
+  <div id="toasts" aria-live="polite"></div>
 </body>
 </html>

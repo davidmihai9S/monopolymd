@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#252c5e"/><stop offset="1" stop-color="#0e1120"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd98a"/><stop offset=".55" stop-color="#f4b740"/><stop offset="1" stop-color="#d98a12"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+  <circle cx="256" cy="262" r="178" fill="#0a0c18" opacity=".35"/>
+  <circle cx="256" cy="252" r="178" fill="url(#gold)"/>
+  <circle cx="256" cy="252" r="152" fill="none" stroke="#9a5f06" stroke-width="9" opacity=".45"/>
+  <path fill="#161a38" d="M128 338v-74h42v-34h46v34h14V160l26-26 26 26v104h14v-58h46v58h42v74z"/>
+  <path fill="#f4b740" d="M144 280h12v14h-12zM144 306h12v14h-12zM184 248h12v14h-12zM184 274h12v14h-12zM200 274h0M184 300h12v14h-12zM248 178h16v18h-16zM248 210h16v18h-16zM248 242h16v18h-16zM248 274h16v18h-16zM312 226h12v14h-12zM312 252h12v14h-12zM312 278h12v14h-12zM312 304h12v14h-12zM354 280h12v14h-12zM354 306h12v14h-12z"/>
+  <rect x="112" y="338" width="288" height="10" rx="5" fill="#161a38"/>
+</svg>
