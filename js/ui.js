@@ -816,7 +816,7 @@ export class GameView {
         gotojail: 'Mergi direct la închisoare. Nu treci pe la Pornire.',
         tax: `Plătești ${money(t.amount)}${s.settings.jackpot ? ' (banii merg în potul de la Parcare)' : ''}.`,
         chance: 'Tragi o carte Șansă: deplasări, amenzi, noroc.',
-        assoc: 'Tragi o carte de la Asociația de proprietari: facturi, despăgubiri, vecini.',
+        assoc: 'Tragi o carte din Cufărul Comunității.',
       }[t.type];
       body += `<p class="deed-about">${esc(about)}</p>`;
     }
@@ -1071,7 +1071,7 @@ export function openRules() {
       <h3>Datorii și faliment</h3>
       <ul><li>Dacă nu ai cu ce plăti, poți vinde clădiri, ipoteca sau face schimburi. Dacă tot nu ajunge, dai faliment și ieși din joc.</li></ul>
       <h3>Cărți</h3>
-      <ul><li><b>Șansă</b> și <b>Asociația</b> (de proprietari) aduc deplasări, facturi, amenzi și surprize.</li></ul>
+      <ul><li><b>Șansă</b> și <b>Cufărul Comunității</b> aduc deplasări, amenzi și bani.</li></ul>
       <p class="hint">Opțional: potul de la Parcare strânge taxele și amenzile pentru cine oprește acolo.</p></div>`,
   });
 }
